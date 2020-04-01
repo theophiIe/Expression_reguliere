@@ -199,6 +199,7 @@ AUTOMATE automate_supprimer_epsilon(AUTOMATE A){
 
 AUTOMATE automate_epsilon(){
 	AUTOMATE A = automate_creer(1);
+	
 	automate_ajouter_final (A, 1);
 	automate_ajouter_transition (A, 0, -1, 1);
 	
@@ -207,6 +208,7 @@ AUTOMATE automate_epsilon(){
 
 AUTOMATE automate_une_lettre(char car){
 	AUTOMATE A = automate_creer(1);
+	
 	automate_ajouter_final (A, 1);
 	automate_ajouter_transition (A, 0, car, 1);
 	
@@ -217,11 +219,16 @@ AUTOMATE automate_une_lettre(char car){
 AUTOMATE automate_concatenation(AUTOMATE A, AUTOMATE B){
 	AUTOMATE C = automate_creer(0);
 	
+
+	
 	return C;
 }
 
 AUTOMATE automate_disjonction(AUTOMATE A, AUTOMATE B){
 	AUTOMATE C = automate_creer(0);
+	
+	automate_ajouter_transition (C, 0, -1, A.Q = 0); // On doit réussir a relier l'automate C avec une epsilon transition aux deux autres à leurs états initiaux
+	automate_ajouter_transition (C, 0, -1, B.Q = 0); // pareil
 	
 	return C;
 }

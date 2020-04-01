@@ -198,13 +198,17 @@ AUTOMATE automate_supprimer_epsilon(AUTOMATE A){
 
 
 AUTOMATE automate_epsilon(){
-	AUTOMATE A = automate_creer(0);
+	AUTOMATE A = automate_creer(1);
+	automate_ajouter_final (A, 1);
+	automate_ajouter_transition (A, 0, -1, 1);
 	
 	return A;
 }
 
 AUTOMATE automate_une_lettre(char car){
-	AUTOMATE A = automate_creer(0);
+	AUTOMATE A = automate_creer(1);
+	automate_ajouter_final (A, 1);
+	automate_ajouter_transition (A, 0, car, 1);
 	
 	return A;
 }

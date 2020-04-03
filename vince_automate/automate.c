@@ -225,16 +225,16 @@ AUTOMATE automate_concatenation(AUTOMATE A, AUTOMATE B){
 	
 	//Recréer les transitions de l'automate A dans l'automate C
 	for( int i=0 ; i<A.Q ; i++ )
-		automate_ajouter_transition(C, i, (A.T[i]).car, (A.T[i]).arr);
+		automate_ajouter_transition(C, i, (A.T[i])->car, (A.T[i])->arr);
 	
 	//Recréer les transitions de l'automate B dans l'automate C
 	for( int i=A.Q ; i<A.Q + B.Q ; i++ )
-		automate_ajouter_transition(C, i, (B.T[i - A.Q]).car, (B.T[i - A.Q]).arr);
+		automate_ajouter_transition(C, i, (B.T[i - A.Q])->car, (B.T[i - A.Q])->arr);
 	
 	//Ajout des e-transitions des etats finaux de A à l'état initial de B 
-	for( int i=0 ; i<A.Q : i++ ){
+	for( int i=0 ; i<A.Q ; i++ ){
 		if( A.F[i] == 1)
-			automate_ajouter_transition(C, i, '', A.Q);
+			automate_ajouter_transition(C, i, 'e', A.Q);
 	}
 	
 	return C;
@@ -251,7 +251,7 @@ AUTOMATE automate_etoile(AUTOMATE A){
 	//Ajouter e-transition entre l'état initial et tous les états finaux
 	for (int i=0 ; i<A.Q ; i++ ){
 		if(A.F[i] == 1)			//Si l'état i est un état final
-			automate_ajouter_transition(A, i, '', 0);		//On ajoute e-transition entre i et 0 (l'état initial)
+			automate_ajouter_transition(A, i, 'e', 0);		//On ajoute e-transition entre i et 0 (l'état initial)
 	}
 	
 	//L'état initial devient un état final

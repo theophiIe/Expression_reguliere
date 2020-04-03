@@ -247,9 +247,17 @@ AUTOMATE automate_disjonction(AUTOMATE A, AUTOMATE B){
 }
 
 AUTOMATE automate_etoile(AUTOMATE A){
-	AUTOMATE B = automate_creer(0);
 	
-	return B;
+	//Ajouter e-transition entre l'état initial et tous les états finaux
+	for (int i=0 ; i<A.Q ; i++ ){
+		if(A.F[i] == 1)			//Si l'état i est un état final
+			automate_ajouter_transition(A, i, '', 0);		//On ajoute e-transition entre i et 0 (l'état initial)
+	}
+	
+	//L'état initial devient un état final
+	automate_ajouter_final(A, 0);
+	
+	return A;
 }
 
 

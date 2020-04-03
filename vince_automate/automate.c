@@ -235,13 +235,13 @@ AUTOMATE automate_concatenation(AUTOMATE A, AUTOMATE B){
 	for( int i=A.Q ; i<A.Q + B.Q ; i++ ){
 		T = B.T[i - A.Q];
 		if(T != NULL)
-			automate_ajouter_transition(C, i, T->car, T->arr);
+			automate_ajouter_transition(C, i, T->car, T->arr+A.Q);
 	}
 	
 	//Ajout des e-transitions des etats finaux de A à l'état initial de B 
 	for( int i=0 ; i<A.Q ; i++ ){
 		if( A.F[i] == 1)
-			automate_ajouter_transition(C, i, 'e', A.Q);
+			automate_ajouter_transition(C, i, -1, A.Q);
 	}
 	
 	//~ TRANSITION T = B.T[0];
@@ -261,7 +261,7 @@ AUTOMATE automate_etoile(AUTOMATE A){
 	//Ajouter e-transition entre l'état initial et tous les états finaux
 	for (int i=0 ; i<A.Q ; i++ ){
 		if(A.F[i] == 1)			//Si l'état i est un état final
-			automate_ajouter_transition(A, i, 'e', 0);		//On ajoute e-transition entre i et 0 (l'état initial)
+			automate_ajouter_transition(A, i, -1, 0);		//On ajoute e-transition entre i et 0 (l'état initial)
 	}
 	
 	//L'état initial devient un état final

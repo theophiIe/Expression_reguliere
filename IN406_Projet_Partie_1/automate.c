@@ -219,28 +219,32 @@ AUTOMATE automate_concatenation(AUTOMATE A, AUTOMATE B){
 	AUTOMATE C = automate_creer(A.Q + B.Q);
 	
 	//Les états finaux de C sont les même que ceux de B
-	for( int i=0 ; i < B.Q ; i++ ){
+	for( int i=0 ; i < B.Q ; i++ )
+	{
 		if( B.F[i] == 1 )
 			automate_ajouter_final(C, i+A.Q);
 	} 
 	
 	//Recréer les transitions de l'automate A dans l'automate C
 	TRANSITION T;
-	for( int i=0 ; i<A.Q ; i++ ){
+	for( int i=0 ; i<A.Q ; i++ )
+	{
 		T = A.T[i];
 		if(T != NULL)
 			automate_ajouter_transition(C, i, T->car, T->arr);
 	}
 	
 	//Recréer les transitions de l'automate B dans l'automate C
-	for( int i=A.Q ; i<A.Q + B.Q ; i++ ){
+	for( int i = A.Q ; i < A.Q + B.Q ; i++ )
+	{
 		T = B.T[i - A.Q];
 		if(T != NULL)
 			automate_ajouter_transition(C, i, T->car, T->arr+A.Q);
 	}
 	
 	//Ajout des e-transitions des etats finaux de A à l'état initial de B 
-	for( int i=0 ; i<A.Q ; i++ ){
+	for( int i=0 ; i < A.Q ; i++ )
+	{
 		if( A.F[i] == 1)
 			automate_ajouter_transition(C, i, -1, A.Q);
 	}
@@ -275,11 +279,11 @@ AUTOMATE automate_disjonction(AUTOMATE A, AUTOMATE B){
 	}
 	
 	//Recréer les transitions de l'automate B dans l'automate C
-	for( int i=A.Q ; i<A.Q + B.Q ; i++ )
+	for( int i=A.Q ; i < A.Q + B.Q ; i++ )
 	{
 		T = B.T[i - A.Q];
 		if(T != NULL)
-			automate_ajouter_transition(C, i + 1, T->car, T -> arr + A.Q + 1);
+			automate_ajouter_transition(C, i + 1, T->car, T->arr + A.Q + 1);
 	}
 	
 	//Ajout des e-transitions des etats initial de C vers les états initiales de A et B
@@ -291,7 +295,16 @@ AUTOMATE automate_disjonction(AUTOMATE A, AUTOMATE B){
 }
 
 AUTOMATE automate_etoile(AUTOMATE A){
-	AUTOMATE B = automate_creer(0);
+	AUTOMATE B = automate_copier(A, 1);
+	
+	automate_ajouter_final(B, 0);
+	
+	//Ajout des e-transitions des etats finaux de A à l'état initial de B 
+	for( int i=0 ; i < A.Q ; i++ )
+	{
+		if( A.F[i] == 1)
+			automate_ajouter_transition(B, i, -1, 0);
+	}
 	
 	return B;
 }

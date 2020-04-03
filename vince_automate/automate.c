@@ -224,18 +224,28 @@ AUTOMATE automate_concatenation(AUTOMATE A, AUTOMATE B){
 	} 
 	
 	//Recréer les transitions de l'automate A dans l'automate C
-	for( int i=0 ; i<A.Q ; i++ )
-		automate_ajouter_transition(C, i, (A.T[i])->car, (A.T[i])->arr);
+	TRANSITION T;
+	for( int i=0 ; i<A.Q ; i++ ){
+		T = A.T[i];
+		if(T != NULL)
+			automate_ajouter_transition(C, i, T->car, T->arr);
+	}
 	
 	//Recréer les transitions de l'automate B dans l'automate C
-	for( int i=A.Q ; i<A.Q + B.Q ; i++ )
-		automate_ajouter_transition(C, i, (B.T[i - A.Q])->car, (B.T[i - A.Q])->arr);
+	for( int i=A.Q ; i<A.Q + B.Q ; i++ ){
+		T = B.T[i - A.Q];
+		if(T != NULL)
+			automate_ajouter_transition(C, i, T->car, T->arr);
+	}
 	
 	//Ajout des e-transitions des etats finaux de A à l'état initial de B 
 	for( int i=0 ; i<A.Q ; i++ ){
 		if( A.F[i] == 1)
 			automate_ajouter_transition(C, i, 'e', A.Q);
 	}
+	
+	//~ TRANSITION T = B.T[0];
+	//~ printf("%c\n",T->car);
 	
 	return C;
 }

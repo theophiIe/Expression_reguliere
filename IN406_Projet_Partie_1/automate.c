@@ -410,6 +410,9 @@ char *nombreLettreUnique(AUTOMATE A, int *taille)
 
     char *tabLettreUnique = malloc( nbreTransi * sizeof(char) );
     
+    if(tabLettreUnique == NULL)
+		printf("Error allocation malloc : tabLettreUnique\n");
+    
 	int j = 0, i = 0, count = 0;
 	while( i < nbreTransi ) 
 	{
@@ -421,7 +424,10 @@ char *nombreLettreUnique(AUTOMATE A, int *taille)
 	  count++;
 	}
 	
-	tabLettreUnique = (char *)realloc(tabLettre, count * sizeof(char) );
+	tabLettreUnique = (char *)realloc(tabLettreUnique, count * sizeof(char) );
+	
+	if(tabLettreUnique == NULL)
+		printf("Error allocation remalloc : tabLettreUnique\n");
 	
 	free(tabLettre);
 	
@@ -434,7 +440,7 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 {
 	//Nombre d'etat de A + 1 pour l'etat poubelle
 	AUTOMATE B = automate_creer(A.Q + 1);
-	printf("%d\n", A.Q);
+	printf("nombre de sommet : %d\n", A.Q);
 	//~ int tab[A.Q + 1];
 	
 	//~ for(int i = 0; i<A.Q; i++)
@@ -444,6 +450,8 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	
 	int nbreLettre;
 	char *tabLettre = nombreLettreUnique(A, &nbreLettre);
+	
+	printf("nombre de lettre : %d\n", nbreLettre);
 	
 	//Allocation de la matrice de verification
 	int **matrice = calloc( (nbreLettre + 2), sizeof(int*) );
@@ -466,16 +474,15 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 		matrice[i][A.Q + 1] = 1;
 	
 	//Init matrice classe + transition lettre
-	for(int i = 0; i < (A.Q + 1); i++)
+	for(int i = 0; i < (A.Q); i++)
   	{
   		TRANSITION l = A.T[i];
   		while(l)
   		{
-			for(int cmpt=0; cmpt<nbreLettre && l != NULL; cmpt++)
-			{
+			for(int cmpt=0; cmpt < nbreLettre && l != NULL; cmpt++)
+			{	
 				if(tabLettre[cmpt] == l -> car)
-					matrice[cmpt+1][l -> arr] = matrice[0][l -> arr];
-				
+					matrice[cmpt+1][cmpt] = matrice[0][l -> arr];
 			}
 			
 			l = l-> suiv;
@@ -483,7 +490,7 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	}
 	
 	//Si pas de transition on met la val de la poubelle
-	for(int i = 0; i < (nbreLettre + 2); i++)
+	for(int i = 0; i < (nbreLettre + 1); i++)
   	{
 		for(int j = 0; j < (A.Q + 1); j++)
 		{
@@ -501,6 +508,17 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 		printf("\n");
 	}	
 	
+	
+	int *resultat = malloc((A.Q + 1) * sizeof(int));
+	
+	if(tabLettreUnique == NULL)
+		printf("Error allocation malloc : resultat\n");
+		
+	for(int j = 0; j < (A.Q + 1); j++)
+	{
+		
+	}
+	
 	//Liberation de la memoire
 	//~ for( int i = 0 ; i < (nbreLettre + 2) ; i++)
 		//~ free(matrice[i]);
@@ -509,6 +527,7 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 
 	return B;
 }
+
 
 
 

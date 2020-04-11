@@ -509,16 +509,58 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	}	
 	
 	
-	int *resultat = malloc((A.Q + 1) * sizeof(int));
+	int *resultatAd = malloc((A.Q + 1) * sizeof(int));
+	int resultat = 0;
 	
-	if(tabLettreUnique == NULL)
+	//Addition des colonnes pour savoir si les nombres sont similaires ou non 
+	if(resultatAd == NULL)
 		printf("Error allocation malloc : resultat\n");
 		
-	for(int j = 0; j < (A.Q + 1); j++)
+	for(int colonne = 0; colonne < (A.Q + 1); colonne++)
 	{
+		for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
+		{
+			resultat += matrice[colonne][ligne];
+		}
 		
+		resultatAd[colonne] = resultat; //Stocker aussi les postions lignes colonnes?
+		resultat = 0;
 	}
 	
+	//Test des resultats egaux par additions si egaux test egaux avec multiplications
+	for(int i = 0; i < (A.Q + 1); i++)
+	{	
+		for(int j = 0; j < (A.Q + 1); j++)
+		{
+			if(resultatAd[i] == resultatAd[j] )
+			{
+				for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
+				{
+					resultatMult1 *= matrice[i][ligne];
+					resultatMult2 *= matrice[j][ligne];
+				}
+				
+				//Si egale ils ont le même resultat
+				if(resultatMult1 == resultatMult2)
+				{
+					matrice[ligne][colonne] = i;
+					matrice[ligne][colonne] = i;
+				}
+				
+				//Sinon ils prennent le numéros de leur colonne
+				else()
+				{
+					matrice[ligne][colonne] = colonne + 1;
+					matrice[ligne][colonne] = colonne + 1;
+				}
+				
+				resultatMult1 = 0;
+				resultatMult2 = 0;
+			}	
+		}
+	}
+	
+	free(resultatAd);
 	//Liberation de la memoire
 	//~ for( int i = 0 ; i < (nbreLettre + 2) ; i++)
 		//~ free(matrice[i]);

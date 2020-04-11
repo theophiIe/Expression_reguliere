@@ -23,6 +23,7 @@ int main(int argc, char * argv[]){
 	automate_ecrire(G,"test_supprimer_epsilon.aut");
 	AUTOMATE H = automate_determiniser(F);
 	automate_ecrire(H,"test_determiniser.aut");
+	AUTOMATE I = automate_minimisation(B);
 	automate_liberer_memoire(A);
 	automate_liberer_memoire(B);
 	automate_liberer_memoire(C);
@@ -31,5 +32,6 @@ int main(int argc, char * argv[]){
 	automate_liberer_memoire(F);
 	automate_liberer_memoire(G);
 	automate_liberer_memoire(H);
+	automate_liberer_memoire(I);
 	return 0;
 }

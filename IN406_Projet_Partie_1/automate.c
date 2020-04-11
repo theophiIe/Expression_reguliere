@@ -300,19 +300,223 @@ AUTOMATE automate_etoile(AUTOMATE A){
 	automate_ajouter_final(B, 0);
 	
 	//Ajout des e-transitions des etats finaux de A à l'état initial de B 
-	for( int i=0 ; i < A.Q ; i++ )
+	for( int i=0 ; i < B.Q ; i++ )
 	{
-		if( A.F[i] == 1)
+		if( B.F[i] == 1)
 			automate_ajouter_transition(B, i, -1, 0);
 	}
 	
 	return B;
 }
 
-
+static float puissance(float x, int n)
+{
+	return (n == 0) ? 1 : (x*puissance(x,n-1));
+}
 
 AUTOMATE automate_determiniser(AUTOMATE A){
 	AUTOMATE B = automate_supprimer_epsilon(A);
+	AUTOMATE C = automate_creer(puissance(2.0,B.Q)); //Creation d'un automate avec le nombre max d'etat possible
 	
+	char *memCar;
+	int  *memEtat; 
+	int nbreTransi = 0;
+	
+	
+  	for(int i = 0; i < B.Q; i++)
+  	{
+  		TRANSITION l = B.T[i];
+  		
+  		//On regarde combien il y a de transition pour un même sommet
+  		while(l)
+  		{
+  			nbreTransi++;
+  			l = l-> suiv;
+  		}
+  		
+  		int x 	 = 0;
+  		int same = 0;
+  		TRANSITION T = B.T[i];
+  		//on creer un tab avec l'etat d'arriver et la lettre
+  		memEtat = malloc (sizeof (int)  * nbreTransi) ;
+  		memCar  = malloc (sizeof (char) * nbreTransi) ;
+  		
+  		//On remplis les tableaux
+  		while(l)
+  		{
+			memEtat[x] = T->arr;
+			memCar [x] = T->car;
+			x++;
+		}
+  		
+  		//On regarde si pour un meme sommet il n'y a pas plusieur fois la meme lettre
+  		for(x = 0; x<nbreTransi; x++)
+  		{
+			for(int y = 0; y<nbreTransi; y++)
+			{
+				if(memCar[x] == memCar[y] && x != y)
+					same = 1;
+			}
+			
+			if(same == 0)
+				automate_ajouter_transition(C, i, memCar[x], memEtat[x]);
+				
+			same = 0;
+		}
+  		
+  		free(memEtat);
+  		free(memCar);
+  	}
+	
+	
+	return C;
+}
+
+/////////////
+/////////////
+
+char *nombreLettreUnique(AUTOMATE A, int *taille)
+{
+	AUTOMATE B = automate_supprimer_epsilon(A);
+	TRANSITION T;
+	
+	int	nbreTransi = 0;
+	int x = 0;
+	
+	for( int i = 0 ; i < B.Q ; i++ )
+	{
+		T = B.T[i];
+		
+		while(T)
+  		{
+  			nbreTransi++;
+  			T = T-> suiv;
+  		}
+	}
+	
+	char *tabLettre = malloc(nbreTransi * sizeof(char));
+	
+	for( int i=0 ; i < B.Q ; i++ )
+	{
+		T = B.T[i];
+ 		
+		while(T)
+  		{
+			tabLettre[0] = T -> car;
+			T = T -> suiv;
+			x++;
+  		}
+	}
+
+    char *tabLettreUnique = malloc( nbreTransi * sizeof(char) );
+    
+	int j = 0, i = 0, count = 0;
+	while( i < nbreTransi ) 
+	{
+	  while( tabLettre[j] == tabLettre[i] )
+		  i++;
+		  
+	  tabLettreUnique[count] = tabLettre[j];
+	  j=i;
+	  count++;
+	}
+	
+	tabLettreUnique = (char *)realloc(tabLettre, count * sizeof(char) );
+	
+	free(tabLettre);
+	
+	*taille = count;
+	
+	return tabLettreUnique;
+}
+
+AUTOMATE automate_minimisation(AUTOMATE A)
+{
+	//Nombre d'etat de A + 1 pour l'etat poubelle
+	AUTOMATE B = automate_creer(A.Q + 1);
+	printf("%d\n", A.Q);
+	//~ int tab[A.Q + 1];
+	
+	//~ for(int i = 0; i<A.Q; i++)
+		//~ tab[i] = i;
+	//~ //poubelle
+	//~ tab[A.Q] = -1;
+	
+	int nbreLettre;
+	char *tabLettre = nombreLettreUnique(A, &nbreLettre);
+	
+	//Allocation de la matrice de verification
+	int **matrice = calloc( (nbreLettre + 2), sizeof(int*) );
+	
+	for(int i = 0; i < (nbreLettre + 2); i++)
+		matrice[i] = calloc( (A.Q + 1), sizeof(int*) );
+
+	//Init la classe de depart de la matrice
+	for(int i=0; i < (A.Q + 1); i++)
+	{
+		if( A.F[i] == 1)
+			matrice[0][i] = 2;
+		
+		else
+			matrice[0][i] = 1;
+	}
+	
+	//Poubelle
+	for(int i = 0; i < (nbreLettre + 2); i++)
+		matrice[i][A.Q + 1] = 1;
+	
+	//Init matrice classe + transition lettre
+	for(int i = 0; i < (A.Q + 1); i++)
+  	{
+  		TRANSITION l = A.T[i];
+  		while(l)
+  		{
+			for(int cmpt=0; cmpt<nbreLettre && l != NULL; cmpt++)
+			{
+				if(tabLettre[cmpt] == l -> car)
+					matrice[cmpt+1][l -> arr] = matrice[0][l -> arr];
+				
+			}
+			
+			l = l-> suiv;
+  		}
+	}
+	
+	//Si pas de transition on met la val de la poubelle
+	for(int i = 0; i < (nbreLettre + 2); i++)
+  	{
+		for(int j = 0; j < (A.Q + 1); j++)
+		{
+			if(matrice[i][j] == 0)
+				matrice[i][j] = matrice[0][A.Q]; 
+		}		
+	}	
+	
+	for(int i = 0; i < (nbreLettre + 2); i++)
+  	{
+		for(int j = 0; j < A.Q + 1; j++)
+		{
+			printf("%d ",matrice[i][j]); 
+		}
+		printf("\n");
+	}	
+	
+	//Liberation de la memoire
+	//~ for( int i = 0 ; i < (nbreLettre + 2) ; i++)
+		//~ free(matrice[i]);
+		
+	//~ free(matrice);
+
 	return B;
 }
+
+
+
+
+
+
+
+
+
+
+

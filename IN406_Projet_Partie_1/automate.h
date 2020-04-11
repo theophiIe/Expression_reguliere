@@ -60,3 +60,5 @@ AUTOMATE automate_disjonction(AUTOMATE A, AUTOMATE B);//renvoie un automate qui 
 //langages reconnus par A et B
 AUTOMATE automate_etoile(AUTOMATE A);//renvoie un automate qui reconnaît l'étoile de Kleene du langage du langage reconnu par A
 AUTOMATE automate_determiniser(AUTOMATE A);//renvoie un automate déterministe qui reconnait le même langage que A
+
+AUTOMATE automate_minimisation(AUTOMATE A);

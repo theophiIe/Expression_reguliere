@@ -518,12 +518,7 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 		printf("Error allocation malloc : resultat\n");
 	
 	int val = 0;
-	//~ for(int colonne = 0; colonne < (A.Q + 1); colonne++)
-	//~ {
-		//~ for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
-		//~ {
-			//~ resultat += matrice[colonne][ligne];
-		//~ }
+
 	for(int colonne = 0; colonne < (A.Q + 1); colonne++)
 	{
 		for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
@@ -564,20 +559,20 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 				//Si egale ils ont le même resultat
 				if(resultatMult1 == resultatMult2)
 				{
-					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+					matrice[(nbreLettre + 1)][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
 					printf("matrice i meme resultat : %d\n", resultatAd[i + 1] + 1);
 					
-					matrice[2][resultatAd[j + 1]] = resultatAd[i + 1] + 1;
+					matrice[(nbreLettre + 1)][resultatAd[j + 1]] = resultatAd[i + 1] + 1;
 					printf("matrice j meme resultat : %d\n\n", resultatAd[i + 1] + 1);
 				}
 				
 				//Sinon ils prennent le numéros de leur colonne
 				else
 				{
-					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+					matrice[(nbreLettre + 1)][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
 					printf("matrice i resultat diff : %d\n", resultatAd[i + 1] + 1);
 					
-					matrice[2][resultatAd[j + 1]] = resultatAd[j + 1] + 1;
+					matrice[(nbreLettre + 1)][resultatAd[j + 1]] = resultatAd[j + 1] + 1;
 					printf("matrice j resultat diff : %d\n\n", resultatAd[j + 1] + 1);
 				}
 				
@@ -589,6 +584,29 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	
 	free(resultatAd);
 	
+
+	//Verifiaction de si l'automate n'est pas deja minimisé
+	int minimise = 1;
+	for(int i = 0; i < (A.Q + 1); i++)
+	{
+		for(int j = 0; j < (A.Q + 1); j++)
+		{
+			if(matrice[(nbreLettre + 1)][i] == matrice[(nbreLettre + 1)][j] && i != j)
+			{
+				minimise = 0;
+				break;
+			}
+		}
+		
+		if(minimise == 0)
+			break;
+	}
+	
+	if(minimise == 1)
+	{
+		printf("l'automate est deja minimal\n");
+		return B;
+	}
 	
 	//Afficher la matrice
 	printf("\n");

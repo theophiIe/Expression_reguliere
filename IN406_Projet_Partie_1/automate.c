@@ -375,7 +375,8 @@ AUTOMATE automate_determiniser(AUTOMATE A){
 /////////////
 /////////////
 
-//Cette fonction permet de connaitre le nombre unique de lettre de l'automate er retourne un tableau avec ses lettres
+//Cette fonction permet de connaitre le nombre unique de lettre de l'automate
+//Retourne un tableau avec ses lettres
 char *nombreLettreUnique(AUTOMATE A, int *taille)
 {
 	AUTOMATE B = automate_supprimer_epsilon(A);
@@ -395,6 +396,7 @@ char *nombreLettreUnique(AUTOMATE A, int *taille)
   		}
 	}
 	
+	//Allocation d'un tableau contenant toute les lettres de chaque transitions
 	char *tabLettre = malloc(nbreTransi * sizeof(char));
 	
 	for( int i=0 ; i < B.Q ; i++ )
@@ -408,7 +410,8 @@ char *nombreLettreUnique(AUTOMATE A, int *taille)
 			x++;
   		}
 	}
-
+	
+	//Allocation du tableau avec les lettres uniques de l'automate
     char *tabLettreUnique = malloc( nbreTransi * sizeof(char) );
     
     if(tabLettreUnique == NULL)
@@ -484,7 +487,6 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	}
 	
 	
-	//// BOUCLER LE PROGRAMME ICI DE FACON INFINIE ////
 	int nbP = 1; //Variable qui permet de savoir combiende fois on va boucler 
 	
 	while(nbP<3)
@@ -499,18 +501,8 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 			}		
 		}	
 		
-		//~ //Afficher la matrice
-		//~ printf("\n");
-		//~ for(int i = 0; i < ((nbreLettre + 1) * nbP) + 1; i++)
-		//~ {
-			//~ for(int j = 0; j < A.Q + 1; j++)
-			//~ {
-				//~ printf("%d ",matrice[i][j]); 
-			//~ }
-			//~ printf("\n");
-		//~ }	
-		
-		
+		//Allocation d'un tableau qui addition chaques lignes d'une même colonnes 
+		//C'est à dire classe + nombre de lettre
 		int *resultatAd = malloc( (2*(B.Q + 1)) * sizeof(int)); // on rajoute *2pour connaitre le stkocker le postion de la colonne 
 		int resultat = 0;
 		
@@ -686,12 +678,6 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 						matrice[((nbreLettre + 1) * (nbP-1)) + cmpt+1][nbreColonne] = matrice[((nbreLettre + 1) * (nbP-1))][l -> arr];
 					}
 					
-					else if(((nbreLettre + 1) * (nbP-1)) + cmpt < 8)
-					{
-						printf("TESTTEST : %d\n",((nbreLettre + 1) * (nbP-1)) + cmpt+1);
-						matrice[((nbreLettre + 1) * (nbP-1)) + cmpt][nbreColonne] = 4;
-					}
-					
 					nbreColonne++;
 				}
 				
@@ -699,16 +685,6 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 			}
 		}
 		
-		//Afficher la matrice
-		//~ printf("\n");
-		//~ for(int i = 0; i < ((nbreLettre + 1) * nbP) + 1; i++)
-		//~ {
-			//~ for(int j = 0; j < A.Q + 1; j++)
-			//~ {
-				//~ printf("%d ",matrice[i][j]); 
-			//~ }
-			//~ printf("\n");
-		//~ }	
 	}
 	//Liberation de la memoire
 	//~ for( int i = 0 ; i < (nbreLettre + 2) ; i++)

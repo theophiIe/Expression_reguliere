@@ -300,19 +300,342 @@ AUTOMATE automate_etoile(AUTOMATE A){
 	automate_ajouter_final(B, 0);
 	
 	//Ajout des e-transitions des etats finaux de A à l'état initial de B 
-	for( int i=0 ; i < A.Q ; i++ )
+	for( int i=0 ; i < B.Q ; i++ )
 	{
-		if( A.F[i] == 1)
+		if( B.F[i] == 1)
 			automate_ajouter_transition(B, i, -1, 0);
 	}
 	
 	return B;
 }
 
-
+static float puissance(float x, int n)
+{
+	return (n == 0) ? 1 : (x*puissance(x,n-1));
+}
 
 AUTOMATE automate_determiniser(AUTOMATE A){
 	AUTOMATE B = automate_supprimer_epsilon(A);
+	AUTOMATE C = automate_creer(puissance(2.0,B.Q)); //Creation d'un automate avec le nombre max d'etat possible
 	
+	char *memCar;
+	int  *memEtat; 
+	int nbreTransi = 0;
+	
+	
+  	for(int i = 0; i < B.Q; i++)
+  	{
+  		TRANSITION l = B.T[i];
+  		
+  		//On regarde combien il y a de transition pour un même sommet
+  		while(l)
+  		{
+  			nbreTransi++;
+  			l = l-> suiv;
+  		}
+  		
+  		int x 	 = 0;
+  		int same = 0;
+  		TRANSITION T = B.T[i];
+  		//on creer un tab avec l'etat d'arriver et la lettre
+  		memEtat = malloc (sizeof (int)  * nbreTransi) ;
+  		memCar  = malloc (sizeof (char) * nbreTransi) ;
+  		
+  		//On remplis les tableaux
+  		while(l)
+  		{
+			memEtat[x] = T->arr;
+			memCar [x] = T->car;
+			x++;
+		}
+  		
+  		//On regarde si pour un meme sommet il n'y a pas plusieur fois la meme lettre
+  		for(x = 0; x<nbreTransi; x++)
+  		{
+			for(int y = 0; y<nbreTransi; y++)
+			{
+				if(memCar[x] == memCar[y] && x != y)
+					same = 1;
+			}
+			
+			if(same == 0)
+				automate_ajouter_transition(C, i, memCar[x], memEtat[x]);
+				
+			same = 0;
+		}
+  		
+  		free(memEtat);
+  		free(memCar);
+  	}
+	
+	
+	return C;
+}
+
+/////////////
+/////////////
+
+char *nombreLettreUnique(AUTOMATE A, int *taille)
+{
+	AUTOMATE B = automate_supprimer_epsilon(A);
+	TRANSITION T;
+	
+	int	nbreTransi = 0;
+	int x = 0;
+	
+	for( int i = 0 ; i < B.Q ; i++ )
+	{
+		T = B.T[i];
+		
+		while(T)
+  		{
+  			nbreTransi++;
+  			T = T-> suiv;
+  		}
+	}
+	
+	char *tabLettre = malloc(nbreTransi * sizeof(char));
+	
+	for( int i=0 ; i < B.Q ; i++ )
+	{
+		T = B.T[i];
+ 		
+		while(T)
+  		{
+			tabLettre[0] = T -> car;
+			T = T -> suiv;
+			x++;
+  		}
+	}
+
+    char *tabLettreUnique = malloc( nbreTransi * sizeof(char) );
+    
+    if(tabLettreUnique == NULL)
+		printf("Error allocation malloc : tabLettreUnique\n");
+    
+	int j = 0, i = 0, count = 0;
+	while( i < nbreTransi ) 
+	{
+	  while( tabLettre[j] == tabLettre[i] )
+		  i++;
+		  
+	  tabLettreUnique[count] = tabLettre[j];
+	  j=i;
+	  count++;
+	}
+	
+	tabLettreUnique = (char *)realloc(tabLettreUnique, count * sizeof(char) );
+	
+	if(tabLettreUnique == NULL)
+		printf("Error allocation remalloc : tabLettreUnique\n");
+	
+	free(tabLettre);
+	
+	*taille = count;
+	
+	return tabLettreUnique;
+}
+
+AUTOMATE automate_minimisation(AUTOMATE A)
+{
+	//Nombre d'etat de A + 1 pour l'etat poubelle
+	AUTOMATE B = automate_creer(A.Q + 1);
+	printf("nombre de sommet : %d\n", A.Q);
+	//~ int tab[A.Q + 1];
+	
+	//~ for(int i = 0; i<A.Q; i++)
+		//~ tab[i] = i;
+	//~ //poubelle
+	//~ tab[A.Q] = -1;
+	
+	int nbreLettre;
+	char *tabLettre = nombreLettreUnique(A, &nbreLettre);
+	
+	printf("nombre de lettre : %d\n", nbreLettre);
+	
+	//Allocation de la matrice de verification
+	int **matrice = calloc( (nbreLettre + 2), sizeof(int*) );
+	
+	for(int i = 0; i < (nbreLettre + 2); i++)
+		matrice[i] = calloc( (A.Q + 1), sizeof(int*) );
+
+	//Init la classe de depart de la matrice
+	for(int i=0; i < (A.Q + 1); i++)
+	{
+		if( A.F[i] == 1)
+			matrice[0][i] = 2;
+		
+		else
+			matrice[0][i] = 1;
+	}
+	
+	//Poubelle
+	for(int i = 0; i < (nbreLettre + 2); i++)
+		matrice[i][A.Q + 1] = 1;
+	
+	//Init matrice classe + transition lettre
+	for(int i = 0; i < (A.Q); i++)
+  	{
+  		TRANSITION l = A.T[i];
+  		while(l)
+  		{
+			for(int cmpt=0; cmpt < nbreLettre && l != NULL; cmpt++)
+			{	
+				if(tabLettre[cmpt] == l -> car)
+					matrice[cmpt+1][cmpt] = matrice[0][l -> arr];
+			}
+			
+			l = l-> suiv;
+  		}
+	}
+	
+	//Si pas de transition on met la val de la poubelle
+	for(int i = 0; i < (nbreLettre + 1); i++)
+  	{
+		for(int j = 0; j < (A.Q + 1); j++)
+		{
+			if(matrice[i][j] == 0)
+				matrice[i][j] = matrice[0][A.Q]; 
+		}		
+	}	
+	
+	//Afficher la matrice
+	for(int i = 0; i < (nbreLettre + 2); i++)
+  	{
+		for(int j = 0; j < A.Q + 1; j++)
+		{
+			printf("%d ",matrice[i][j]); 
+		}
+		printf("\n");
+	}	
+	
+	
+	int *resultatAd = malloc( (2*(A.Q + 1)) * sizeof(int)); // on rajoute *2pour connaitre le stkocker le postion de la colonne 
+	int resultat = 0;
+	
+	//Addition des colonnes pour savoir si les nombres sont similaires ou non 
+	if(resultatAd == NULL)
+		printf("Error allocation malloc : resultat\n");
+	
+	int val = 0;
+
+	for(int colonne = 0; colonne < (A.Q + 1); colonne++)
+	{
+		for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
+		{
+			resultat += matrice[ligne][colonne];
+		}
+		resultatAd[val] = resultat; //Stocker aussi les postions lignes colonnes? //changer la variable par colonnes par une autres 
+		val++;
+		resultatAd[val] = colonne;
+		val++;
+		resultat = 0;
+	}
+	
+	//Affiche la contenue de resultatAd
+	printf("contenu resultatAd : ");
+	for(int i = 0; i<(2*(A.Q + 1)); i++)
+	{
+		printf("%d, ",resultatAd[i]);
+	}
+	printf("\n");
+	
+	//Test des resultats egaux par additions si egaux test egaux avec multiplications
+	for(int i = 0; i < ((A.Q + 1) * 2); i += 2)
+	{	
+		for(int j = 0; j < ((A.Q + 1) * 2); j += 2)
+		{
+			if(resultatAd[i] == resultatAd[j] )
+			{
+				int resultatMult1 = 1;
+				int resultatMult2 = 1;
+				printf("resultatAd[i] : %d\t resultatAd[j] : %d\n",resultatAd[i],resultatAd[j]);
+				for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
+				{
+						resultatMult1 *= matrice[ligne][resultatAd[i + 1]];
+						resultatMult2 *= matrice[ligne][resultatAd[j + 1]];
+				}
+				
+				//Si egale ils ont le même resultat
+				if(resultatMult1 == resultatMult2)
+				{
+					matrice[(nbreLettre + 1)][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+					printf("matrice i meme resultat : %d\n", resultatAd[i + 1] + 1);
+					
+					matrice[(nbreLettre + 1)][resultatAd[j + 1]] = resultatAd[i + 1] + 1;
+					printf("matrice j meme resultat : %d\n\n", resultatAd[i + 1] + 1);
+				}
+				
+				//Sinon ils prennent le numéros de leur colonne
+				else
+				{
+					matrice[(nbreLettre + 1)][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+					printf("matrice i resultat diff : %d\n", resultatAd[i + 1] + 1);
+					
+					matrice[(nbreLettre + 1)][resultatAd[j + 1]] = resultatAd[j + 1] + 1;
+					printf("matrice j resultat diff : %d\n\n", resultatAd[j + 1] + 1);
+				}
+				
+				resultatMult1 = 0;
+				resultatMult2 = 0;
+			}	
+		}
+	}
+	
+	free(resultatAd);
+	
+
+	//Verifiaction de si l'automate n'est pas deja minimisé
+	int minimise = 1;
+	for(int i = 0; i < (A.Q + 1); i++)
+	{
+		for(int j = 0; j < (A.Q + 1); j++)
+		{
+			if(matrice[(nbreLettre + 1)][i] == matrice[(nbreLettre + 1)][j] && i != j)
+			{
+				minimise = 0;
+				break;
+			}
+		}
+		
+		if(minimise == 0)
+			break;
+	}
+	
+	if(minimise == 1)
+	{
+		printf("l'automate est deja minimal\n");
+		return B;
+	}
+	
+	//Afficher la matrice
+	printf("\n");
+	for(int i = 0; i < (nbreLettre + 2); i++)
+  	{
+		for(int j = 0; j < A.Q + 1; j++)
+		{
+			printf("%d ",matrice[i][j]); 
+		}
+		printf("\n");
+	}	
+	
+	//Liberation de la memoire
+	//~ for( int i = 0 ; i < (nbreLettre + 2) ; i++)
+		//~ free(matrice[i]);
+		
+	//~ free(matrice);
+
 	return B;
 }
+
+
+
+
+
+
+
+
+
+
+
+

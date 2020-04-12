@@ -516,19 +516,34 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	//Addition des colonnes pour savoir si les nombres sont similaires ou non 
 	if(resultatAd == NULL)
 		printf("Error allocation malloc : resultat\n");
-		
+	
+	int val = 0;
+	//~ for(int colonne = 0; colonne < (A.Q + 1); colonne++)
+	//~ {
+		//~ for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
+		//~ {
+			//~ resultat += matrice[colonne][ligne];
+		//~ }
 	for(int colonne = 0; colonne < (A.Q + 1); colonne++)
 	{
 		for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
 		{
-			resultat += matrice[colonne][ligne];
+			resultat += matrice[ligne][colonne];
 		}
-		
-		resultatAd[colonne]     = resultat; //Stocker aussi les postions lignes colonnes? //changer la variable par colonnes par une autres 
-		resultatAd[colonne + 1] = colonne;
-		
+		resultatAd[val] = resultat; //Stocker aussi les postions lignes colonnes? //changer la variable par colonnes par une autres 
+		val++;
+		resultatAd[val] = colonne;
+		val++;
 		resultat = 0;
 	}
+	
+	//Affiche la contenue de resultatAd
+	printf("contenu resultatAd : ");
+	for(int i = 0; i<(2*(A.Q + 1)); i++)
+	{
+		printf("%d, ",resultatAd[i]);
+	}
+	printf("\n");
 	
 	//Test des resultats egaux par additions si egaux test egaux avec multiplications
 	for(int i = 0; i < ((A.Q + 1) * 2); i += 2)
@@ -549,21 +564,21 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 				//Si egale ils ont le même resultat
 				if(resultatMult1 == resultatMult2)
 				{
-					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1];
-					printf("matrice i meme resultat : %d\n", resultatAd[i + 1]);
+					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+					printf("matrice i meme resultat : %d\n", resultatAd[i + 1] + 1);
 					
-					matrice[2][resultatAd[j + 1]] = resultatAd[i + 1];
-					printf("matrice j meme resultat : %d\n\n", resultatAd[i + 1]);
+					matrice[2][resultatAd[j + 1]] = resultatAd[i + 1] + 1;
+					printf("matrice j meme resultat : %d\n\n", resultatAd[i + 1] + 1);
 				}
 				
 				//Sinon ils prennent le numéros de leur colonne
 				else
 				{
-					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1];
-					printf("matrice i resultat diff : %d\n", resultatAd[i + 1]);
+					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+					printf("matrice i resultat diff : %d\n", resultatAd[i + 1] + 1);
 					
-					matrice[2][resultatAd[j + 1]] = resultatAd[j + 1];
-					printf("matrice j resultat diff : %d\n\n", resultatAd[j + 1]);
+					matrice[2][resultatAd[j + 1]] = resultatAd[j + 1] + 1;
+					printf("matrice j resultat diff : %d\n\n", resultatAd[j + 1] + 1);
 				}
 				
 				resultatMult1 = 0;

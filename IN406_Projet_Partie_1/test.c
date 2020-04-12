@@ -17,13 +17,17 @@ int main(int argc, char * argv[]){
 	AUTOMATE D = automate_une_lettre('c');
 	AUTOMATE E = automate_disjonction(B,D);
 	automate_ecrire(E,"test_disjonction.aut");
+	
+	AUTOMATE Z = automate_supprimer_epsilon(E);
+	automate_ecrire(Z,"test_supprimer_epsilonZ.aut");
+	
 	AUTOMATE F = automate_etoile(E);
 	automate_ecrire(F,"test_etoile.aut");
 	AUTOMATE G = automate_supprimer_epsilon(F);
 	automate_ecrire(G,"test_supprimer_epsilon.aut");
 	AUTOMATE H = automate_determiniser(F);
 	automate_ecrire(H,"test_determiniser.aut");
-	AUTOMATE I = automate_minimisation(B);
+	AUTOMATE I = automate_minimisation(E);
 	automate_liberer_memoire(A);
 	automate_liberer_memoire(B);
 	automate_liberer_memoire(C);
@@ -33,5 +37,6 @@ int main(int argc, char * argv[]){
 	automate_liberer_memoire(G);
 	automate_liberer_memoire(H);
 	automate_liberer_memoire(I);
+	automate_liberer_memoire(Z);
 	return 0;
 }

@@ -375,6 +375,7 @@ AUTOMATE automate_determiniser(AUTOMATE A){
 /////////////
 /////////////
 
+//Cette fonction permet de connaitre le nombre unique de lettre de l'automate er retourne un tableau avec ses lettres
 char *nombreLettreUnique(AUTOMATE A, int *taille)
 {
 	AUTOMATE B = automate_supprimer_epsilon(A);
@@ -438,31 +439,21 @@ char *nombreLettreUnique(AUTOMATE A, int *taille)
 
 AUTOMATE automate_minimisation(AUTOMATE A)
 {
-	//Nombre d'etat de A + 1 pour l'etat poubelle
-	AUTOMATE B = automate_creer(A.Q + 1);
-	printf("nombre de sommet : %d\n", A.Q);
-	//~ int tab[A.Q + 1];
-	
-	//~ for(int i = 0; i<A.Q; i++)
-		//~ tab[i] = i;
-	//~ //poubelle
-	//~ tab[A.Q] = -1;
-	
+	AUTOMATE B = automate_supprimer_epsilon(A);
+
 	int nbreLettre;
-	char *tabLettre = nombreLettreUnique(A, &nbreLettre);
-	
-	printf("nombre de lettre : %d\n", nbreLettre);
+	char *tabLettre = nombreLettreUnique(B, &nbreLettre);
 	
 	//Allocation de la matrice de verification
 	int **matrice = calloc( (nbreLettre + 2), sizeof(int*) );
 	
 	for(int i = 0; i < (nbreLettre + 2); i++)
-		matrice[i] = calloc( (A.Q + 1), sizeof(int*) );
+		matrice[i] = calloc( (B.Q + 1), sizeof(int*) );
 
 	//Init la classe de depart de la matrice
-	for(int i=0; i < (A.Q + 1); i++)
+	for(int i=0; i < (B.Q + 1); i++)
 	{
-		if( A.F[i] == 1)
+		if( B.F[i] == 1)
 			matrice[0][i] = 2;
 		
 		else
@@ -471,154 +462,254 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	
 	//Poubelle
 	for(int i = 0; i < (nbreLettre + 2); i++)
-		matrice[i][A.Q + 1] = 1;
+		matrice[i][B.Q + 1] = 1;
 	
 	//Init matrice classe + transition lettre
-	for(int i = 0; i < (A.Q); i++)
+	for(int i = 0; i < (B.Q); i++)
   	{
-  		TRANSITION l = A.T[i];
+  		TRANSITION l = B.T[i];
   		while(l)
   		{
 			for(int cmpt=0; cmpt < nbreLettre && l != NULL; cmpt++)
 			{	
 				if(tabLettre[cmpt] == l -> car)
+				{
 					matrice[cmpt+1][cmpt] = matrice[0][l -> arr];
+					printf("cmpt 1 : %d\n",cmpt);
+				}
 			}
 			
 			l = l-> suiv;
   		}
 	}
 	
-	//Si pas de transition on met la val de la poubelle
-	for(int i = 0; i < (nbreLettre + 1); i++)
-  	{
-		for(int j = 0; j < (A.Q + 1); j++)
-		{
-			if(matrice[i][j] == 0)
-				matrice[i][j] = matrice[0][A.Q]; 
-		}		
-	}	
 	
-	//Afficher la matrice
-	for(int i = 0; i < (nbreLettre + 2); i++)
-  	{
-		for(int j = 0; j < A.Q + 1; j++)
+	//// BOUCLER LE PROGRAMME ICI DE FACON INFINIE ////
+	int nbP = 1; //Variable qui permet de savoir combiende fois on va boucler 
+	
+	while(nbP<3)
+	{
+		//Si pas de transition on met la val de la poubelle
+		for(int i = 0; i < (nbreLettre + 1)*nbP; i++)
 		{
-			printf("%d ",matrice[i][j]); 
+			for(int j = 0; j < (B.Q + 1); j++)
+			{
+				if(matrice[i][j] == 0)
+					matrice[i][j] = matrice[((nbreLettre + 1)*nbP) - (nbreLettre + 1)][A.Q];
+			}		
+		}	
+		
+		//~ //Afficher la matrice
+		//~ printf("\n");
+		//~ for(int i = 0; i < ((nbreLettre + 1) * nbP) + 1; i++)
+		//~ {
+			//~ for(int j = 0; j < A.Q + 1; j++)
+			//~ {
+				//~ printf("%d ",matrice[i][j]); 
+			//~ }
+			//~ printf("\n");
+		//~ }	
+		
+		
+		int *resultatAd = malloc( (2*(B.Q + 1)) * sizeof(int)); // on rajoute *2pour connaitre le stkocker le postion de la colonne 
+		int resultat = 0;
+		
+		//Addition des colonnes pour savoir si les nombres sont similaires ou non 
+		if(resultatAd == NULL)
+			printf("Error allocation malloc : resultat\n");
+		
+		int val = 0;
+
+		for(int colonne = 0; colonne < (B.Q + 1); colonne++)
+		{	
+			for(int ligne = ((nbreLettre + 1)*nbP) - (nbreLettre + 1); ligne < ((nbreLettre + 1) * nbP) + 1; ligne++)
+			{
+				resultat += matrice[ligne][colonne];
+			}
+			
+			resultatAd[val] = resultat; //Stocker aussi les postions lignes colonnes? //changer la variable par colonnes par une autres 
+			val++;
+			resultatAd[val] = colonne;
+			val++;
+			resultat = 0;
+		}
+		
+		//Affiche la contenue de resultatAd
+		printf("contenu resultatAd : ");
+		for(int i = 0; i < (2*(B.Q + 1)); i++)
+		{
+			printf("%d, ",resultatAd[i]);
 		}
 		printf("\n");
-	}	
-	
-	
-	int *resultatAd = malloc( (2*(A.Q + 1)) * sizeof(int)); // on rajoute *2pour connaitre le stkocker le postion de la colonne 
-	int resultat = 0;
-	
-	//Addition des colonnes pour savoir si les nombres sont similaires ou non 
-	if(resultatAd == NULL)
-		printf("Error allocation malloc : resultat\n");
-	
-	int val = 0;
-
-	for(int colonne = 0; colonne < (A.Q + 1); colonne++)
-	{
-		for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
-		{
-			resultat += matrice[ligne][colonne];
-		}
-		resultatAd[val] = resultat; //Stocker aussi les postions lignes colonnes? //changer la variable par colonnes par une autres 
-		val++;
-		resultatAd[val] = colonne;
-		val++;
-		resultat = 0;
-	}
-	
-	//Affiche la contenue de resultatAd
-	printf("contenu resultatAd : ");
-	for(int i = 0; i<(2*(A.Q + 1)); i++)
-	{
-		printf("%d, ",resultatAd[i]);
-	}
-	printf("\n");
-	
-	//Test des resultats egaux par additions si egaux test egaux avec multiplications
-	for(int i = 0; i < ((A.Q + 1) * 2); i += 2)
-	{	
-		for(int j = 0; j < ((A.Q + 1) * 2); j += 2)
-		{
-			if(resultatAd[i] == resultatAd[j] )
+		
+		//Test des resultats egaux par additions si egaux test egaux avec multiplications
+		for(int i = 0; i < ((B.Q + 1) * 2); i += 2)
+		{	
+			for(int j = 0; j < ((B.Q + 1) * 2); j += 2)
 			{
-				int resultatMult1 = 1;
-				int resultatMult2 = 1;
-				printf("resultatAd[i] : %d\t resultatAd[j] : %d\n",resultatAd[i],resultatAd[j]);
-				for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
+				if(resultatAd[i] == resultatAd[j] && i != j)
 				{
-						resultatMult1 *= matrice[ligne][resultatAd[i + 1]];
-						resultatMult2 *= matrice[ligne][resultatAd[j + 1]];
-				}
-				
-				//Si egale ils ont le même resultat
-				if(resultatMult1 == resultatMult2)
-				{
-					matrice[(nbreLettre + 1)][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
-					printf("matrice i meme resultat : %d\n", resultatAd[i + 1] + 1);
+					int resultatMult1 = 1;
+					int resultatMult2 = 1;
+					printf("resultatAd[i] : %d\t resultatAd[j] : %d\n",resultatAd[i],resultatAd[j]);
+					for(int ligne = ((nbreLettre + 1)*nbP) - (nbreLettre + 1); ligne < ((nbreLettre + 1) * nbP) + 1; ligne++)
+					{
+							resultatMult1 *= matrice[ligne][resultatAd[i + 1]];
+							resultatMult2 *= matrice[ligne][resultatAd[j + 1]];
+					}
 					
-					matrice[(nbreLettre + 1)][resultatAd[j + 1]] = resultatAd[i + 1] + 1;
-					printf("matrice j meme resultat : %d\n\n", resultatAd[i + 1] + 1);
-				}
-				
-				//Sinon ils prennent le numéros de leur colonne
-				else
-				{
-					matrice[(nbreLettre + 1)][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
-					printf("matrice i resultat diff : %d\n", resultatAd[i + 1] + 1);
+					//Si egale ils ont le même resultat
+					if(resultatMult1 == resultatMult2)
+					{
+						matrice[(nbreLettre + 1)*nbP][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+						printf("matrice i meme resultat : %d\n", resultatAd[i + 1] + 1);
+						
+						matrice[(nbreLettre + 1)*nbP][resultatAd[j + 1]] = resultatAd[i + 1] + 1;
+						printf("matrice j meme resultat : %d\n\n", resultatAd[i + 1] + 1);
+					}
 					
-					matrice[(nbreLettre + 1)][resultatAd[j + 1]] = resultatAd[j + 1] + 1;
-					printf("matrice j resultat diff : %d\n\n", resultatAd[j + 1] + 1);
+					//Sinon ils prennent le numéros de leur colonne
+					else
+					{
+						matrice[(nbreLettre + 1)*nbP][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+						printf("matrice i resultat diff : %d\n", resultatAd[i + 1] + 1);
+						
+						matrice[(nbreLettre + 1)*nbP][resultatAd[j + 1]] = resultatAd[j + 1] + 1;
+						printf("matrice j resultat diff : %d\n\n", resultatAd[j + 1] + 1);
+					}
+					
+					resultatMult1 = 0;
+					resultatMult2 = 0;
 				}
 				
-				resultatMult1 = 0;
-				resultatMult2 = 0;
-			}	
-		}
-	}
-	
-	free(resultatAd);
-	
-
-	//Verifiaction de si l'automate n'est pas deja minimisé
-	int minimise = 1;
-	for(int i = 0; i < (A.Q + 1); i++)
-	{
-		for(int j = 0; j < (A.Q + 1); j++)
-		{
-			if(matrice[(nbreLettre + 1)][i] == matrice[(nbreLettre + 1)][j] && i != j)
-			{
-				minimise = 0;
-				break;
+				else if(resultatAd[i] != resultatAd[j] && i != j)
+				{
+					//~ matrice[(nbreLettre + 1)*nbP][resultatAd[i + 1]] = resultatAd[i + 1] + 1;
+					printf("matrice i PAS egale : %d\n", resultatAd[i + 1] + 1);
+				}	
 			}
 		}
 		
-		if(minimise == 0)
-			break;
-	}
-	
-	if(minimise == 1)
-	{
-		printf("l'automate est deja minimal\n");
-		return B;
-	}
-	
-	//Afficher la matrice
-	printf("\n");
-	for(int i = 0; i < (nbreLettre + 2); i++)
-  	{
-		for(int j = 0; j < A.Q + 1; j++)
-		{
-			printf("%d ",matrice[i][j]); 
-		}
+		free(resultatAd);
+		
+		//Afficher la matrice
 		printf("\n");
-	}	
-	
+		for(int i = 0; i < ((nbreLettre + 1) * nbP) + 1; i++)
+		{
+			for(int j = 0; j < B.Q + 1; j++)
+			{
+				printf("%d ",matrice[i][j]); 
+			}
+			printf("\n");
+		}	
+		
+		//Verifiaction de si l'automate n'est pas deja minimisé
+		int minimise = 1;
+		for(int i = 0; i < (B.Q + 1); i++)
+		{
+			for(int j = 0; j < (B.Q + 1); j++)
+			{
+				if(matrice[(nbreLettre + 1)*nbP][i] == matrice[(nbreLettre + 1)*nbP][j] && i != j)
+				{
+					minimise = 0;
+					break;
+				}
+			}
+			
+			if(minimise == 0)
+				break;
+		}
+		
+		if(minimise == 1)
+		{
+			printf("l'automate est deja minimal\n");
+			//return B;
+		}
+		
+		//Comparer en partant de la derniere classe les autres classes
+		int cmpt = 0;
+		for(int ligne = (nbreLettre + 1)*nbP; ligne > 0; ligne -= (nbreLettre + 1))
+		{
+			for(int colonne = 0; colonne < B.Q + 1; colonne++)
+			{
+				if(matrice[(nbreLettre + 1)][colonne] == matrice[ligne][colonne])
+					cmpt++;
+			}
+			
+			//Si on a une classe egale à une autre on minimise 
+			if(cmpt == B.Q + 1)
+			{
+				//Creation de l'automate minimisé
+				
+				//return B;
+			}
+			
+			cmpt=0;
+		}
+		
+		printf("ALED\n");
+		//On realloc la matrice pour l'agrandir tant qu'une classe n'est pas egale à une autre	
+		nbP++;
+			
+		matrice = (int**)realloc(matrice, (((nbreLettre + 1) * nbP) + 1)* sizeof(int*) );
+		
+		for(int i = 0; i < (((nbreLettre + 1) * nbP) + 1); i++)
+			matrice[i] = (int*)realloc(matrice[i], (B.Q + 1) * sizeof(int*) );
+		
+		if(matrice == NULL)
+			printf("Error allocation malloc : matrice\n");
+		
+		printf("ALED2\n");
+		
+		//On remplit les cases vide de la matrice avec des zero
+		for(int ligne = ((nbreLettre + 1) * (nbP)) - 1; ligne < ((nbreLettre + 1) * nbP) + 1; ligne++)
+		{
+			for(int colonne = 0; colonne < (B.Q + 1); colonne++)
+			{
+				matrice[ligne][colonne] = 0;
+			}
+		}
+		
+		//On remplit avec les transitions precedante
+		printf("nbreLettre : %d\n", nbreLettre);
+		int nbreColonne = 0;
+		for(int i = 0; i < (B.Q); i++)
+		{
+			TRANSITION l = B.T[i];
+			while(l)
+			{
+				for(int cmpt = 0; cmpt < nbreLettre && l != NULL; cmpt++)
+				{
+					printf("cmpt : %d\n", nbreColonne);
+					if(tabLettre[cmpt] == l -> car)
+					{
+						matrice[((nbreLettre + 1) * (nbP-1)) + cmpt+1][nbreColonne] = matrice[((nbreLettre + 1) * (nbP-1))][l -> arr];
+					}
+					
+					else if(((nbreLettre + 1) * (nbP-1)) + cmpt < 8)
+					{
+						printf("TESTTEST : %d\n",((nbreLettre + 1) * (nbP-1)) + cmpt+1);
+						matrice[((nbreLettre + 1) * (nbP-1)) + cmpt][nbreColonne] = 4;
+					}
+					
+					nbreColonne++;
+				}
+				
+				l = l-> suiv;
+			}
+		}
+		
+		//Afficher la matrice
+		//~ printf("\n");
+		//~ for(int i = 0; i < ((nbreLettre + 1) * nbP) + 1; i++)
+		//~ {
+			//~ for(int j = 0; j < A.Q + 1; j++)
+			//~ {
+				//~ printf("%d ",matrice[i][j]); 
+			//~ }
+			//~ printf("\n");
+		//~ }	
+	}
 	//Liberation de la memoire
 	//~ for( int i = 0 ; i < (nbreLettre + 2) ; i++)
 		//~ free(matrice[i]);

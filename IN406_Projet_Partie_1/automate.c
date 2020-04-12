@@ -499,6 +499,7 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 		}		
 	}	
 	
+	//Afficher la matrice
 	for(int i = 0; i < (nbreLettre + 2); i++)
   	{
 		for(int j = 0; j < A.Q + 1; j++)
@@ -509,7 +510,7 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	}	
 	
 	
-	int *resultatAd = malloc((A.Q + 1) * sizeof(int));
+	int *resultatAd = malloc( (2*(A.Q + 1)) * sizeof(int)); // on rajoute *2pour connaitre le stkocker le postion de la colonne 
 	int resultat = 0;
 	
 	//Addition des colonnes pour savoir si les nombres sont similaires ou non 
@@ -523,35 +524,46 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 			resultat += matrice[colonne][ligne];
 		}
 		
-		resultatAd[colonne] = resultat; //Stocker aussi les postions lignes colonnes?
+		resultatAd[colonne]     = resultat; //Stocker aussi les postions lignes colonnes? //changer la variable par colonnes par une autres 
+		resultatAd[colonne + 1] = colonne;
+		
 		resultat = 0;
 	}
 	
 	//Test des resultats egaux par additions si egaux test egaux avec multiplications
-	for(int i = 0; i < (A.Q + 1); i++)
+	for(int i = 0; i < ((A.Q + 1) * 2); i += 2)
 	{	
-		for(int j = 0; j < (A.Q + 1); j++)
+		for(int j = 0; j < ((A.Q + 1) * 2); j += 2)
 		{
 			if(resultatAd[i] == resultatAd[j] )
 			{
+				int resultatMult1 = 1;
+				int resultatMult2 = 1;
+				printf("resultatAd[i] : %d\t resultatAd[j] : %d\n",resultatAd[i],resultatAd[j]);
 				for(int ligne = 0; ligne < (nbreLettre + 1); ligne++)
 				{
-					resultatMult1 *= matrice[i][ligne];
-					resultatMult2 *= matrice[j][ligne];
+						resultatMult1 *= matrice[ligne][resultatAd[i + 1]];
+						resultatMult2 *= matrice[ligne][resultatAd[j + 1]];
 				}
 				
 				//Si egale ils ont le même resultat
 				if(resultatMult1 == resultatMult2)
 				{
-					matrice[ligne][colonne] = i;
-					matrice[ligne][colonne] = i;
+					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1];
+					printf("matrice i meme resultat : %d\n", resultatAd[i + 1]);
+					
+					matrice[2][resultatAd[j + 1]] = resultatAd[i + 1];
+					printf("matrice j meme resultat : %d\n\n", resultatAd[i + 1]);
 				}
 				
 				//Sinon ils prennent le numéros de leur colonne
-				else()
+				else
 				{
-					matrice[ligne][colonne] = colonne + 1;
-					matrice[ligne][colonne] = colonne + 1;
+					matrice[2][resultatAd[i + 1]] = resultatAd[i + 1];
+					printf("matrice i resultat diff : %d\n", resultatAd[i + 1]);
+					
+					matrice[2][resultatAd[j + 1]] = resultatAd[j + 1];
+					printf("matrice j resultat diff : %d\n\n", resultatAd[j + 1]);
 				}
 				
 				resultatMult1 = 0;
@@ -561,6 +573,19 @@ AUTOMATE automate_minimisation(AUTOMATE A)
 	}
 	
 	free(resultatAd);
+	
+	
+	//Afficher la matrice
+	printf("\n");
+	for(int i = 0; i < (nbreLettre + 2); i++)
+  	{
+		for(int j = 0; j < A.Q + 1; j++)
+		{
+			printf("%d ",matrice[i][j]); 
+		}
+		printf("\n");
+	}	
+	
 	//Liberation de la memoire
 	//~ for( int i = 0 ; i < (nbreLettre + 2) ; i++)
 		//~ free(matrice[i]);

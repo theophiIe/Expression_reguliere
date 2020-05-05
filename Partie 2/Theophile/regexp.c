@@ -50,9 +50,10 @@ ADERIV construire_arbre_derivation(char *expr){
 	
 	int taille = strlen(expr);
 	int index = 1;
-	PILE p = nouvelle_pile(taille*2);
-	STATE symbole;
 	char carCourant;
+	PILE p 	  = nouvelle_pile(taille*2);
+	PILE paro = nouvelle_pile(taille);
+	STATE symbole;
 	
 	if(expr[strlen(expr) - 1] != '#'){
 		printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
@@ -70,19 +71,30 @@ ADERIV construire_arbre_derivation(char *expr){
 	affiche_pile(p);	
 	
 	while( carCourant != '#' || p.sommet  != 0 ){
-		symbole = depiler(&p);
+		if(p.sommet != 0){
+			symbole = depiler(&p);
+		}
+		
+		else{
+			printf("ERR : expression reguliere %s non reconnue\n", expr);
+			liberer_pile(p);
+			liberer_pile(paro);
+			return NULL;
+		}
 		
 		// Non terminaux
 		if(symbole < CAR){
-			if(table[symbole][indice_char(carCourant)].liste[0] != -1){
+			if(table[symbole][indice_char(carCourant)].taille != -1){
 				for(int cmpt = table[symbole][indice_char(carCourant)].taille - 1; cmpt > -1; cmpt--){
 					p = empiler(p, table[symbole][indice_char(carCourant)].liste[cmpt]);
 				}
+				
 			}
 			
 			else{
-				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				printf("ERR : expression reguliere %s non reconnue\n", expr);
 				liberer_pile(p);
+				liberer_pile(paro);
 				return NULL;
 			}
 			
@@ -105,6 +117,7 @@ ADERIV construire_arbre_derivation(char *expr){
 				else{
 					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
 					liberer_pile(p);
+					liberer_pile(paro);
 					return NULL;
 				}
 			}
@@ -113,11 +126,13 @@ ADERIV construire_arbre_derivation(char *expr){
 				if(carCourant == '('){
 					carCourant = expr[index];
 					index++;
+					paro = empiler(paro, PARO);
 				}
 				
 				else{
 					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
 					liberer_pile(p);
+					liberer_pile(paro);
 					return NULL;
 				}
 			}
@@ -126,11 +141,22 @@ ADERIV construire_arbre_derivation(char *expr){
 				if(carCourant == ')'){
 					carCourant = expr[index];
 					index++;
+					
+					if(paro.sommet != 0)
+						depiler(&paro);
+						
+					else{
+						printf("ERR : expression reguliere %s erreur de syntaxe le mot de Dick n'est pas respecté\n", expr);
+						liberer_pile(p);
+						liberer_pile(paro);
+						return NULL;
+					}
 				}
 				
 				else{
 					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
 					liberer_pile(p);
+					liberer_pile(paro);
 					return NULL;
 				}
 			}
@@ -144,6 +170,7 @@ ADERIV construire_arbre_derivation(char *expr){
 				else{
 					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
 					liberer_pile(p);
+					liberer_pile(paro);
 					return NULL;
 				}
 			}
@@ -157,6 +184,7 @@ ADERIV construire_arbre_derivation(char *expr){
 				else{
 					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
 					liberer_pile(p);
+					liberer_pile(paro);
 					return NULL;
 				}
 			}
@@ -170,6 +198,7 @@ ADERIV construire_arbre_derivation(char *expr){
 				else{
 					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
 					liberer_pile(p);
+					liberer_pile(paro);
 					return NULL;
 				}
 			}
@@ -177,6 +206,7 @@ ADERIV construire_arbre_derivation(char *expr){
 			else{
 				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
 				liberer_pile(p);
+				liberer_pile(paro);
 				return NULL;
 			}
 		}
@@ -185,13 +215,15 @@ ADERIV construire_arbre_derivation(char *expr){
 	affiche_pile(p);
 	
 	printf("dernier car : %c\n", carCourant);
-	if( p.sommet == 0 && carCourant == '#')
+	if( p.sommet == 0 && index == taille && paro.sommet == 0)
 		printf("l'expression reguliere : %s est reconnue\n", expr);
 	
 	else
 		printf("l'expression reguliere : %s n'est pas reconnue\n", expr);
 	
 	liberer_pile(p);
+	liberer_pile(paro);
+	
 	return NULL;
 }
 

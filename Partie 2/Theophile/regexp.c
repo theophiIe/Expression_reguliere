@@ -19,7 +19,6 @@ void liberer_arbre(ADERIV a){
 	}
 }
 
-
 int indice_char(char c){//retourne l'indice correspondant au caractère dans le tableau des états
 	switch(c){
 		case '+': return 0;
@@ -71,6 +70,7 @@ ADERIV construire_arbre_derivation(char *expr){
 	affiche_pile(p);	
 	
 	while( carCourant != '#' || p.sommet  != 0 ){
+		//On dépile si la pile n'est pas vide
 		if(p.sommet != 0){
 			symbole = depiler(&p);
 		}

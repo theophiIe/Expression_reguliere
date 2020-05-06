@@ -19,7 +19,6 @@ void liberer_arbre(ADERIV a){
 	}
 }
 
-
 int indice_char(char c){//retourne l'indice correspondant au caractère dans le tableau des états
 	switch(c){
 		case '+': return 0;
@@ -37,18 +36,194 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
-		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, // transition quand le STATE S est lu
-		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},//STATE A
-		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},//STATE B
-		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},//STATE C
-		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},//STATE D
+		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, 	// transition quand le STATE S est lu
+		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},		//STATE A
+		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},	//STATE B
+		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},		//STATE C
+		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},		//STATE D
 		{{0},{0},{0},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}},//STATE E
-		{{0},{0},{2,{ETOILE,F}},{-1},{0},{-1},{0}}//STATE F
+		{{0},{0},{2,{ETOILE,F}},{-1},{0},{-1},{0}}			//STATE F
 	};
 	//Une STATELISTE de taille 0 correspond à une règle dont la production est epsilon.
 	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)
+	
 	int taille = strlen(expr);
-	PILE p = nouvelle_pile(taille*2);
+	int index = 1;
+	char carCourant;
+	PILE p 	  = nouvelle_pile(taille*2);
+	PILE paro = nouvelle_pile(taille);
+	STATE symbole;
+	
+	if(expr[strlen(expr) - 1] != '#'){
+		printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+		liberer_pile(p);
+		return NULL;
+	}
+	
+	// On empile S
+	p = empiler(p, S);
+	
+	// On init le caractere courant
+	carCourant = expr[0];
+	printf("premier car : %c\n" ,carCourant);
+	
+	affiche_pile(p);	
+	
+	while( carCourant != '#' || p.sommet  != 0 ){
+		//On dépile si la pile n'est pas vide
+		if(p.sommet != 0){
+			symbole = depiler(&p);
+		}
+		
+		else{
+			printf("ERR : expression reguliere %s non reconnue\n", expr);
+			liberer_pile(p);
+			liberer_pile(paro);
+			return NULL;
+		}
+		
+		// Non terminaux
+		if(symbole < CAR){
+			if(table[symbole][indice_char(carCourant)].taille != -1){
+				for(int cmpt = table[symbole][indice_char(carCourant)].taille - 1; cmpt > -1; cmpt--){
+					p = empiler(p, table[symbole][indice_char(carCourant)].liste[cmpt]);
+				}
+				
+			}
+			
+			else{
+				printf("ERR : expression reguliere %s non reconnue\n", expr);
+				liberer_pile(p);
+				liberer_pile(paro);
+				return NULL;
+			}
+			
+			affiche_pile(p);	
+		}
+		
+		// Terminaux
+		else if( symbole > F ){
+			if( symbole == CAR ){
+				if( carCourant >= 'a' && carCourant <= 'z' ){
+					carCourant = expr[index];
+					index++;
+				}
+				
+				else if(carCourant == '#'){
+					break;
+				}
+
+				
+				else{
+					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+					liberer_pile(p);
+					liberer_pile(paro);
+					return NULL;
+				}
+			}
+			
+			else if( symbole == PARO ){
+				if(carCourant == '('){
+					carCourant = expr[index];
+					index++;
+					paro = empiler(paro, PARO);
+				}
+				
+				else{
+					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+					liberer_pile(p);
+					liberer_pile(paro);
+					return NULL;
+				}
+			}
+			
+			else if( symbole == PARF ){
+				if(carCourant == ')'){
+					carCourant = expr[index];
+					index++;
+					
+					if(paro.sommet != 0)
+						depiler(&paro);
+						
+					else{
+						printf("ERR : expression reguliere %s erreur de syntaxe le mot de Dick n'est pas respecté\n", expr);
+						liberer_pile(p);
+						liberer_pile(paro);
+						return NULL;
+					}
+				}
+				
+				else{
+					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+					liberer_pile(p);
+					liberer_pile(paro);
+					return NULL;
+				}
+			}
+			
+			else if( symbole == PLUS ){
+				if(carCourant == '+'){
+					carCourant = expr[index];
+					index++;
+				}
+				
+				else{
+					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+					liberer_pile(p);
+					liberer_pile(paro);
+					return NULL;
+				}
+			}
+			
+			else if( symbole == POINT ){
+				if(carCourant == '.'){
+					carCourant = expr[index];
+					index++;
+				}
+				
+				else{
+					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+					liberer_pile(p);
+					liberer_pile(paro);
+					return NULL;
+				}
+			}
+			
+			else if( symbole == ETOILE ){
+				if(carCourant == '*'){
+					carCourant = expr[index];
+					index++;
+				}
+				
+				else{
+					printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+					liberer_pile(p);
+					liberer_pile(paro);
+					return NULL;
+				}
+			}
+			
+			else{
+				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				liberer_pile(p);
+				liberer_pile(paro);
+				return NULL;
+			}
+		}
+	}
+	
+	affiche_pile(p);
+	
+	printf("dernier car : %c\n", carCourant);
+	if( p.sommet == 0 && index == taille && paro.sommet == 0)
+		printf("l'expression reguliere : %s est reconnue\n", expr);
+	
+	else
+		printf("l'expression reguliere : %s n'est pas reconnue\n", expr);
+	
+	liberer_pile(p);
+	liberer_pile(paro);
+	
 	return NULL;
 }
 
@@ -64,3 +239,4 @@ void affiche_aderiv(ADERIV a, int space){//rendre joli
 	    affiche_aderiv(a->fils[0], space + 1);
 	}
 }
+

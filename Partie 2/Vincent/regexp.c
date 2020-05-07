@@ -59,7 +59,7 @@ ADERIV nouveau_noeud(STATE state, char car){
 }
 
 
-ADERIV test_recursif(PILE *pile, char *expr, int *courant, STATELISTE table[7][7]){
+ADERIV test_recursif(PILE *pile, char *expr, int *courant, STATELISTE table[7][7], int *correcte){
 	
 	//Afficher expression en cours
 	for( int i=*courant ; i < strlen(expr) ; i++ )
@@ -74,6 +74,7 @@ ADERIV test_recursif(PILE *pile, char *expr, int *courant, STATELISTE table[7][7
 	
 	if( state_sommet < CAR ){		//Si le symbole en haut de la pile est un non terminal...
 		statelist_taille = table[state_sommet][indice_char(expr[*courant])].taille;
+		
 		if( statelist_taille != -1){		//Si la règle éxiste...
 			depiler(pile);	//On dépile le symbole
 			for( int j=0 ; j < statelist_taille ; j++ )	//On empile les symboles correspondants dans p_renverser
@@ -85,12 +86,28 @@ ADERIV test_recursif(PILE *pile, char *expr, int *courant, STATELISTE table[7][7
 			//On appelle la fonction pour chaque symbole
 			noeud = nouveau_noeud(state_sommet, expr[*courant]);
 			for( int i=0 ; i < statelist_taille ; i++ )
-				noeud->fils[i] = test_recursif(pile, expr, courant, table);
+				noeud->fils[i] = test_recursif(pile, expr, courant, table, correcte);	//Appel recursif
 		}
+		
+		else 		//Si la règle n'éxiste pas...
+			*correcte = 0;
 	}
 	
 	else{							//Si le symbole en haut de la pile est un terminal...
-		depiler(pile);
+		STATE tmp = depiler(pile);	//'tmp' est le symbole terminal qui était au sommet de la pile
+		char terminal;
+		switch( tmp ){
+			case CAR: terminal = expr[*courant]; break;
+			case PARO: terminal = '('; break;
+			case PARF: terminal = ')'; break;
+			case PLUS: terminal = '+'; break;
+			case POINT: terminal = '.'; break;
+			case ETOILE: terminal = '*'; break;
+			default:
+				terminal = '0'; 
+		}
+		if( (expr[*courant] != terminal) && (expr[*courant] != '#') )
+			*correcte = 0;
 		(*courant)++;
 		noeud = nouveau_noeud(state_sommet, expr[*courant]);
 	}
@@ -116,8 +133,14 @@ ADERIV construire_arbre_derivation_TEST(char *expr){
 	p = empiler(p,S);		//On commence avec l'axiome : S
 	
 	int courant = 0;
+	int correcte = 1;
 	
-	ADERIV arbre = test_recursif(&p, expr, &courant, table);
+	ADERIV arbre = test_recursif(&p, expr, &courant, table, &correcte);
+	
+	if( (correcte == 1) && (est_vide(p)) )
+		printf("L'arbre dessiné ci-dessous est correcte !\n");
+	else
+		printf("L'arbre dessiné ci-dessous n'est pas correcte...\n");
 	
 	return arbre;
 }

@@ -3,11 +3,11 @@ CC = gcc
 
 run: clean automate
 	./automate "(a+b)*.a#"
-	./automate "(a+b)*.a"
-	./automate "a+b)*.a#"
-	./automate "(a+)*.a#"
-	./automate "(a+b).*a#"
-	./automate "a+b**.(a.b.z)+d#"
+#~ 	./automate "(a+b)*.a"
+#~ 	./automate "a+b)*.a#"
+#~ 	./automate "(a+)*.a#"
+#~ 	./automate "(a+b).*a#"
+#~ 	./automate "a+b**.(a.b.z)+d#"
 
 automate: test.o automate.o regexp.o pile.o
 	$(CC) test.o automate.o regexp.o pile.o -o automate

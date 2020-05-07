@@ -35,6 +35,7 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 	}
 }
 
+
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
 		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, // transition quand le STATE S est lu
@@ -49,7 +50,101 @@ ADERIV construire_arbre_derivation(char *expr){
 	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)
 	int taille = strlen(expr);
 	PILE p = nouvelle_pile(taille*2);
-	return NULL;
+	PILE p_renverser = nouvelle_pile(taille*2);
+	
+	ADERIV arbre = nouvel_arbre(S,'0');
+	p = empiler(p,S);
+	
+	int statelist_taille, sommet_pile;
+	STATE state_sommet;
+	
+	int i;
+	for( i=0 ; i < taille ; i++ ){
+		
+		sommet_pile = p.sommet - 1;
+		state_sommet = p.contenu[sommet_pile];
+		
+		printf("EXPRESSION = ");
+		for( int k=i ; k < taille ; k++ )
+			printf("%c",expr[k]);
+		printf("\n");
+		printf("PILE p = ");
+		affiche_pile(p);
+		
+		if( state_sommet < CAR ){		//Si le symbole en haut de la pile est un non terminal...
+			
+			statelist_taille = table[state_sommet][indice_char(expr[i])].taille;
+			if( statelist_taille != -1){		//Si la règle éxiste...
+				depiler(&p);	//On dépile le symbole
+				for( int j=0 ; j < statelist_taille ; j++ )	//On empile les symboles correspondants dans p_renverser
+					p_renverser = empiler(p_renverser, table[state_sommet][indice_char(expr[i])].liste[j]);	//necessaire pour mettre les STATE dans le bon ordre dans la PILE p
+				
+				for( int j=0 ; j < statelist_taille ; j++ )	//On dépile p_renverser pour empiler les symboles dans le bon ordre dans p
+					p = empiler(p, depiler(&p_renverser));
+				i--;				//Permet de rester sur le même caractère courant pour la prochaine itération
+			}
+				
+				
+			else{ 							//Si la règle n'éxiste pas...
+				printf("Le mot n'est pas reconnu... (1er else)\n");
+				liberer_pile(p);
+				liberer_pile(p_renverser);
+				return NULL;
+			}
+				
+		}
+		
+		else{							//Si le symbole en haut de la pile est un terminal...
+			
+			//~ if( state_sommet == CAR ){		//Si c'est un caractère...
+				//~ printf("arbre->caractere = %c	expr[i] = %c\n",arbre->caractere,expr[i]);
+				//~ if( arbre->caractere == expr[i] )
+					//~ depiler(&p);	//On dépile le symbole
+			//~ }
+			
+			//~ else if( state_sommet > CAR ){	//Si le symbole du haut de la pile est un terminal autre qu'un caractère...
+				
+				//~ STATE tmp;
+				//~ switch(expr[i]){
+					//~ case '+': tmp = PLUS;
+					//~ case '.': tmp = POINT;
+					//~ case '*': tmp = ETOILE;
+					//~ case '(': tmp = PARO;
+					//~ case ')': tmp = PARF;
+				//~ }
+				//~ //printf("state_sommet = %d	tmp = %d\n",state_sommet,tmp);
+				//~ if( state_sommet == tmp-1 )		//POURQUOI le '-1' ?? Je ne sais pas...
+					//~ depiler(&p);	//On dépile le symbole
+				//~ else if( expr[i] == '#')
+					//~ break;
+			//~ }
+			
+			//~ else{										//Si le symbole du haut de la pile est différent du caractère courant...
+				//~ printf("Le mot n'est pas reconnu... (2ème else)\n");
+				//~ liberer_pile(p);
+				//~ liberer_pile(p_renverser);
+				//~ return NULL;
+			//~ }
+			depiler(&p);
+		}
+		printf("\n");
+	}
+	
+	affiche_pile(p);
+	
+	if( ! est_vide(p) ){
+		printf("Le mot n'est pas reconnu... (pile non vide)\n");
+		liberer_pile(p);
+		liberer_pile(p_renverser);
+		return NULL;
+	}
+	
+	liberer_pile(p);
+	liberer_pile(p_renverser);
+	
+	printf("---------- Le mot est reconnu ! -----------\n");
+	
+	return arbre;
 }
 
 void affiche_aderiv(ADERIV a, int space){//rendre joli

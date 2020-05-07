@@ -30,10 +30,15 @@ int main(int argc, char * argv[]){
 	
 	//Tests seconde partie
 	
+	printf("\n\n");
+	
 	if(argc < 1) printf("Usage du programme: automate \"expression régulière\" \n");
 	printf("Expression d'entrée: %s\n",argv[1]);
 	ADERIV a = construire_arbre_derivation(argv[1]);
 	affiche_aderiv(a,0);
 	liberer_arbre(a);
+	
+	printf("\n\n");
+	
 	return 0;
 }

@@ -36,6 +36,29 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 }
 
 
+ADERIV nouveau_noeud(STATE state, char car){
+	ADERIV a = malloc(sizeof(struct aderiv));
+	
+	a->s = state;
+	
+	switch(state){
+		case CAR: a->caractere = car; break;
+		case PARO: a->caractere = '('; break;
+		case PARF: a->caractere = ')'; break;
+		case PLUS: a->caractere = '+'; break;
+		case POINT: a->caractere = '.'; break;
+		case ETOILE: a->caractere = '*'; break;
+		default:
+			a->caractere = '0';
+	}
+			
+	for( int i=0 ; i < 3 ; i++ )
+		a->fils[i] = NULL;
+	
+	return a;
+}
+
+
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
 		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, // transition quand le STATE S est lu
@@ -52,7 +75,8 @@ ADERIV construire_arbre_derivation(char *expr){
 	PILE p = nouvelle_pile(taille*2);
 	PILE p_renverser = nouvelle_pile(taille*2);
 	
-	ADERIV arbre = nouvel_arbre(S,'0');
+	ADERIV arbre = nouvel_arbre(S,'0');	//Pointe sur la racine de l'arbre
+	ADERIV noeud_courant = arbre;	//Pointe sur le noeud courant, le state au sommet de la pile
 	p = empiler(p,S);
 	
 	int statelist_taille, sommet_pile;
@@ -78,6 +102,12 @@ ADERIV construire_arbre_derivation(char *expr){
 				depiler(&p);	//On dépile le symbole
 				for( int j=0 ; j < statelist_taille ; j++ )	//On empile les symboles correspondants dans p_renverser
 					p_renverser = empiler(p_renverser, table[state_sommet][indice_char(expr[i])].liste[j]);	//necessaire pour mettre les STATE dans le bon ordre dans la PILE p
+				
+				for( int j=0 ; j < statelist_taille ; j++ )	//Remplissage de l'arbre
+					noeud_courant->fils[j] = nouveau_noeud(p_renverser.contenu[j], expr[i]);
+				if( noeud_courant->fils[0] != NULL )
+					noeud_courant = noeud_courant->fils[0];	//'noeud_courant' doit pointer sur le STATE du sommet de la pile
+				
 				
 				for( int j=0 ; j < statelist_taille ; j++ )	//On dépile p_renverser pour empiler les symboles dans le bon ordre dans p
 					p = empiler(p, depiler(&p_renverser));
@@ -106,11 +136,11 @@ ADERIV construire_arbre_derivation(char *expr){
 				
 				//~ STATE tmp;
 				//~ switch(expr[i]){
-					//~ case '+': tmp = PLUS;
-					//~ case '.': tmp = POINT;
-					//~ case '*': tmp = ETOILE;
-					//~ case '(': tmp = PARO;
-					//~ case ')': tmp = PARF;
+					//~ case '+': tmp = PLUS; break;
+					//~ case '.': tmp = POINT; break;
+					//~ case '*': tmp = ETOILE; break;
+					//~ case '(': tmp = PARO; break;
+					//~ case ')': tmp = PARF; break;
 				//~ }
 				//~ //printf("state_sommet = %d	tmp = %d\n",state_sommet,tmp);
 				//~ if( state_sommet == tmp-1 )		//POURQUOI le '-1' ?? Je ne sais pas...

@@ -34,72 +34,74 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 	}
 }
 
-ADERIV construc_recursive(ADERIV *a, STATELISTE table[7][7], char *expr, int *index, int taille, char *carCourant, PILE *p, PILE *paro, STATE *symbole){
+ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int taille, int *error, PILE *p, PILE *paro){
+	ADERIV noeud; 
+	STATE symbole;
+	char carCourant  = expr[*index];
+
 	//On dépile si la pile n'est pas vide
 	if(!est_vide(*p)){
-		*symbole = depiler(p);
+		//affiche_pile(*p);
+		symbole = depiler(p);	
 	}
 	
 	else{
 		printf("ERR : expression reguliere %s non reconnue\n", expr);
-		return NULL;
+		*error = 1;
 	}
 	
 	// Non terminaux
-	if(*symbole < CAR){
-		if(table[*symbole][indice_char(*carCourant)].taille != -1){
-			
-			for(int cmpt = table[*symbole][indice_char(*carCourant)].taille - 1; cmpt > -1; cmpt--){
-				*p = empiler(*p, table[*symbole][indice_char(*carCourant)].liste[cmpt]);
-				*a -> fils[table[*symbole][indice_char(*carCourant)].taille - cmpt];
+	if(symbole < CAR){
+		if(table[symbole][indice_char(carCourant)].taille != -1){
+			for(int cmpt = table[symbole][indice_char(carCourant)].taille - 1; cmpt > -1; cmpt--){
+				*p = empiler(*p, table[symbole][indice_char(carCourant)].liste[cmpt]);
 			}
-			
-			a = construc_recursive(*a, table[7][7], *expr, *index, taille, *carCourant, *p, *paro,*symbole)
 		}
 		
 		else{
 			printf("ERR : expression reguliere %s non reconnue\n", expr);
-			return NULL;
+			*error = 1;
 		}
 		
-		affiche_pile(*p);	
+		noeud = nouvel_arbre(symbole, carCourant);
+		for(int cmpt = 0; cmpt < table[symbole][indice_char(noeud -> caractere)].taille; cmpt++){
+			noeud -> fils[cmpt] = construc_recursive(table, expr, index, taille, error, p, paro);
+		}
+		
+		//affiche_pile(*p);	
 	}
 	
 	// Terminaux
-	else if(*symbole > F){
-		if(*symbole == CAR){
-			if(*carCourant >= 'a' && *carCourant <= 'z'){
-				*carCourant = expr[*index];
+	else if(symbole > F){
+		if(symbole == CAR){
+			if(carCourant >= 'a' && carCourant <= 'z'){
 				(*index)++;
 			}
 			
-			else if(*carCourant == '#'){
-				return a;
+			else if(carCourant == '#'){
+				//return noeud;
 			}
 
-			
 			else{
 				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
-				return NULL;
+				*error = 1;
 			}
 		}
 		
-		else if(*symbole == PARO){
-			if(*carCourant == '('){
-				*carCourant = expr[*index];
+		else if(symbole == PARO){
+			if(carCourant == '('){
 				(*index)++;
 				*paro = empiler(*paro, PARO);
 			}
 			
 			else{
 				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
-				return NULL;
+				*error = 1;
 			}
 		}
 		
-		else if(*symbole == PARF){
-			if(*carCourant == ')'){
-				*carCourant = expr[*index];
+		else if(symbole == PARF){
+			if(carCourant == ')'){
 				(*index)++;
 				
 				if(!est_vide(*p))
@@ -107,69 +109,58 @@ ADERIV construc_recursive(ADERIV *a, STATELISTE table[7][7], char *expr, int *in
 					
 				else{
 					printf("ERR : expression reguliere %s erreur de syntaxe le mot de Dick n'est pas respecté\n", expr);
-					return NULL;
+					*error = 2;
 				}
 			}
 			
 			else{
 				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
-				return NULL;
+				*error = 1;
 			}
 		}
 		
-		else if(*symbole == PLUS){
-			if(*carCourant == '+'){
-				*carCourant = expr[*index];
+		else if(symbole == PLUS){
+			if(carCourant == '+'){
 				(*index)++;
 			}
 			
 			else{
 				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
-				return NULL;
+				*error = 1;
 			}
 		}
 		
-		else if(*symbole == POINT ){
-			if(*carCourant == '.'){
-				*carCourant = expr[*index];
+		else if(symbole == POINT ){
+			if(carCourant == '.'){
 				(*index)++;
 			}
 			
 			else{
 				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
-				return NULL;
+				*error = 1;
 			}
 		}
 		
-		else if(*symbole == ETOILE){
-			if(*carCourant == '*'){
-				*carCourant = expr[*index];
+		else if(symbole == ETOILE){
+			if(carCourant == '*'){
 				(*index)++;
 			}
 			
 			else{
 				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
-				return NULL;
+				*error = 1;
 			}
 		}
 		
 		else{
 			printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
-			return NULL;
+			*error = 1;
 		}
+		
+		noeud = nouvel_arbre(symbole, carCourant);
 	}
 	
-
-	affiche_pile(*p);
-
-	printf("dernier car : %c\n", *carCourant);
-	if( est_vide(*p) && *index == taille && est_vide(*paro))
-		printf("l'expression reguliere : %s est reconnue\n", expr);
-
-	else
-		printf("l'expression reguliere : %s n'est pas reconnue\n", expr);
-	
-	return a;
+	return noeud;
 }
 
 ADERIV construire_arbre_derivation(char *expr){
@@ -186,12 +177,13 @@ ADERIV construire_arbre_derivation(char *expr){
 	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)
 	
 	int taille = strlen(expr);
-	int index = 1;
-	char carCourant;
+	int index  = 0;
+	int error  = 0;
+	
 	PILE p 	  = nouvelle_pile(taille*2);
 	PILE paro = nouvelle_pile(taille);
-	STATE symbole;
-	ADERIV a;
+	
+	ADERIV arbre = NULL;
 	
 	if(expr[strlen(expr) - 1] != '#'){
 		printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
@@ -199,28 +191,34 @@ ADERIV construire_arbre_derivation(char *expr){
 		return NULL;
 	}
 	
-	// On init le caractere courant
-	carCourant = expr[0];
-	printf("premier car : %c\n" ,carCourant);
-	
 	// On empile S
 	p = empiler(p, S);
-	symbole = depiler(&p);
-	
-	//Création de l'arbre
-	a = nouvel_arbre(symbole, carCourant);
-	
-	p = empiler(p, S);
 
+	arbre = construc_recursive(table, expr, &index, taille, &error, &p, &paro);
 	
-	affiche_pile(p);	
+	printf("dernier car : %c\n", expr[index]);
 	
-	a = construc_recursive(&a, table, expr, &index, taille, &carCourant, &p, &paro, &symbole);
+	switch(error){
+		case 0:
+			if( est_vide(p) && expr[index] == '#' && est_vide(paro)){
+				printf("le mot : %s est reconnue\n", expr);
+				break;
+			}
+			return NULL;
+			
+		case 1:
+			printf("le mot : %s n'est pas reconnue\n", expr);
+			return NULL;
+			
+		case 2:
+			printf("le mot : %s n'est pas reconnue\n", expr);
+			return NULL;
+	}
 	
 	liberer_pile(p);
 	liberer_pile(paro);
 	
-	return a;
+	return arbre;
 }
 
 void affiche_aderiv(ADERIV a, int space){//rendre joli

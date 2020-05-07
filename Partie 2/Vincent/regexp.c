@@ -59,6 +59,70 @@ ADERIV nouveau_noeud(STATE state, char car){
 }
 
 
+ADERIV test_recursif(PILE *pile, char *expr, int *courant, STATELISTE table[7][7]){
+	
+	//Afficher expression en cours
+	for( int i=*courant ; i < strlen(expr) ; i++ )
+		printf("%c",expr[i]);
+	printf("\n");
+	
+	PILE p_renverser = nouvelle_pile(strlen(expr)*2);
+	int statelist_taille; 
+	int sommet_pile = pile->sommet - 1;
+	STATE state_sommet = pile->contenu[sommet_pile];	//Le sommet que l'on traite dans cet appel de fonction
+	ADERIV noeud;
+	
+	if( state_sommet < CAR ){		//Si le symbole en haut de la pile est un non terminal...
+		statelist_taille = table[state_sommet][indice_char(expr[*courant])].taille;
+		if( statelist_taille != -1){		//Si la règle éxiste...
+			depiler(pile);	//On dépile le symbole
+			for( int j=0 ; j < statelist_taille ; j++ )	//On empile les symboles correspondants dans p_renverser
+				p_renverser = empiler(p_renverser, table[state_sommet][indice_char(expr[*courant])].liste[j]);	//necessaire pour mettre les STATE dans le bon ordre dans la PILE p
+			
+			for( int j=0 ; j < statelist_taille ; j++ )	//On dépile p_renverser pour empiler les symboles dans le bon ordre dans p
+				*pile = empiler(*pile, depiler(&p_renverser));
+				
+			//On appelle la fonction pour chaque symbole
+			noeud = nouveau_noeud(state_sommet, expr[*courant]);
+			for( int i=0 ; i < statelist_taille ; i++ )
+				noeud->fils[i] = test_recursif(pile, expr, courant, table);
+		}
+	}
+	
+	else{							//Si le symbole en haut de la pile est un terminal...
+		depiler(pile);
+		(*courant)++;
+		noeud = nouveau_noeud(state_sommet, expr[*courant]);
+	}
+	
+	return noeud;
+}
+
+
+ADERIV construire_arbre_derivation_TEST(char *expr){
+	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
+		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, // transition quand le STATE S est lu
+		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},//STATE A
+		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},//STATE B
+		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},//STATE C
+		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},//STATE D
+		{{0},{0},{0},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}},//STATE E
+		{{0},{0},{2,{ETOILE,F}},{-1},{0},{-1},{0}}//STATE F
+	};
+	//Une STATELISTE de taille 0 correspond à une règle dont la production est epsilon.
+	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)
+	int taille = strlen(expr);
+	PILE p = nouvelle_pile(taille*2);
+	p = empiler(p,S);		//On commence avec l'axiome : S
+	
+	int courant = 0;
+	
+	ADERIV arbre = test_recursif(&p, expr, &courant, table);
+	
+	return arbre;
+}
+
+
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
 		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, // transition quand le STATE S est lu
@@ -76,7 +140,7 @@ ADERIV construire_arbre_derivation(char *expr){
 	PILE p_renverser = nouvelle_pile(taille*2);
 	
 	ADERIV arbre = nouvel_arbre(S,'0');	//Pointe sur la racine de l'arbre
-	ADERIV noeud_courant = arbre;	//Pointe sur le noeud courant, le state au sommet de la pile
+	//~ ADERIV noeud_courant = arbre;	//Pointe sur le noeud courant, le state au sommet de la pile
 	p = empiler(p,S);
 	
 	int statelist_taille, sommet_pile;
@@ -103,10 +167,10 @@ ADERIV construire_arbre_derivation(char *expr){
 				for( int j=0 ; j < statelist_taille ; j++ )	//On empile les symboles correspondants dans p_renverser
 					p_renverser = empiler(p_renverser, table[state_sommet][indice_char(expr[i])].liste[j]);	//necessaire pour mettre les STATE dans le bon ordre dans la PILE p
 				
-				for( int j=0 ; j < statelist_taille ; j++ )	//Remplissage de l'arbre
-					noeud_courant->fils[j] = nouveau_noeud(p_renverser.contenu[j], expr[i]);
-				if( noeud_courant->fils[0] != NULL )
-					noeud_courant = noeud_courant->fils[0];	//'noeud_courant' doit pointer sur le STATE du sommet de la pile
+				//~ for( int j=0 ; j < statelist_taille ; j++ )	//Remplissage de l'arbre
+					//~ noeud_courant->fils[j] = nouveau_noeud(p_renverser.contenu[j], expr[i]);
+				//~ if( noeud_courant->fils[0] != NULL )
+					//~ noeud_courant = noeud_courant->fils[0];	//'noeud_courant' doit pointer sur le STATE du sommet de la pile
 				
 				
 				for( int j=0 ; j < statelist_taille ; j++ )	//On dépile p_renverser pour empiler les symboles dans le bon ordre dans p

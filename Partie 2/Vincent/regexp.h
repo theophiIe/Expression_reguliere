@@ -19,7 +19,7 @@ ADERIV nouvel_arbre(STATE s, char c);//mettre la valeur du caractère pour c si 
 void affiche_aderiv(ADERIV a, int space);//affiche un arbre de dérivation
 void liberer_arbre(ADERIV a);//libère la mémoire
 ADERIV construire_arbre_derivation(char *expr);//A IMPLEMENTER
-
+ADERIV construire_arbre_derivation_TEST(char *expr);
 
 
 //structure de donnée pour l'arbre de l'expression régulière obtenu à partir du parse tree

@@ -41,7 +41,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 
 	//On dépile si la pile n'est pas vide
 	if(!est_vide(*p)){
-		symbole = depiler(p);	
+		symbole = depiler(p);
 	}
 	
 	else{
@@ -66,8 +66,6 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 		for(int cmpt = 0; cmpt < table[symbole][indice_char(noeud -> caractere)].taille; cmpt++){
 			noeud -> fils[cmpt] = construc_recursive(table, expr, index, error, p, paro);
 		}
-		
-		//affiche_pile(*p);	
 	}
 	
 	// Terminaux
@@ -98,7 +96,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 				*error = 1;
 			}
 		}
-		
+
 		else if(symbole == PARF){
 			if(carCourant == ')'){
 				(*index)++;
@@ -159,6 +157,11 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 		noeud = nouvel_arbre(symbole, carCourant);
 	}
 	
+	else{
+		printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas reconnu\n", expr);
+		*error = 1;
+	}
+	
 	return noeud;
 }
 
@@ -186,8 +189,7 @@ ADERIV construire_arbre_derivation(char *expr){
 	
 	if(expr[strlen(expr) - 1] != '#'){
 		printf("ERR : le mot %s n'est pas reconnu, erreur de syntaxe il manque # en caractere de fin\n\n", expr);
-		liberer_pile(p);
-		return NULL;
+		goto error;
 	}
 	
 	// On empile S
@@ -204,21 +206,33 @@ ADERIV construire_arbre_derivation(char *expr){
 				break;
 			}
 			
-			return NULL;
+			else{
+				printf("le mot : %s n'est pas reconnue\n\n", expr);
+				goto error;
+			}
 			
 		case 1:
 			printf("le mot : %s n'est pas reconnue\n\n", expr);
-			return NULL;
+			goto error;
 			
 		case 2:
 			printf("le mot : %s n'est pas reconnue\n\n", expr);
-			return NULL;
+			goto error;
+		
+		default:
+			printf("le mot : %s n'est pas reconnue\n\n", expr);
+			goto error;
 	}
 	
 	liberer_pile(p);
 	liberer_pile(paro);
 	
 	return arbre;
+
+error:
+	liberer_pile(p);
+	liberer_pile(paro);
+	return NULL;
 }
 
 void affiche_aderiv(ADERIV a, int space){//rendre joli

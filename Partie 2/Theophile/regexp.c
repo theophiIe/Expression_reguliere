@@ -35,7 +35,7 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 }
 
 ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *error, PILE *p, PILE *paro){
-	ADERIV noeud; 
+	ADERIV noeud  = NULL; 
 	STATE symbole;
 	char carCourant = expr[*index];
 
@@ -52,8 +52,8 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 	// Non terminaux
 	if(symbole < CAR){
 		if(table[symbole][indice_char(carCourant)].taille != -1){
-			for(int cmpt = table[symbole][indice_char(carCourant)].taille - 1; cmpt > -1; cmpt--){
-				*p = empiler(*p, table[symbole][indice_char(carCourant)].liste[cmpt]);
+			for(int cmpt = table[symbole][indice_char(carCourant)].taille; cmpt > 0; cmpt--){
+				*p = empiler(*p, table[symbole][indice_char(carCourant)].liste[cmpt - 1]);
 			}
 		}
 		

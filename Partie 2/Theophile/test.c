@@ -27,6 +27,7 @@ int main(int argc, char * argv[]){
 	automate_liberer_memoire(D);
 	automate_liberer_memoire(E);
 	automate_liberer_memoire(F);
+	automate_liberer_memoire(G);
 	
 	//Tests seconde partie
 	

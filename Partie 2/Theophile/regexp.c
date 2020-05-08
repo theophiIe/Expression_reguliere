@@ -170,8 +170,8 @@ ADERIV construire_arbre_derivation(char *expr){
 		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},	//STATE B
 		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},		//STATE C
 		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},		//STATE D
-		{{0},{0},{0},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}},//STATE E
-		{{0},{0},{2,{ETOILE,F}},{-1},{0},{-1},{0}}			//STATE F
+		{{0},{0},{-1},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}},//STATE E
+		{{0},{0},{1,{ETOILE}},{-1},{0},{-1},{0}}			//STATE F
 	};
 	//Une STATELISTE de taille 0 correspond à une règle dont la production est epsilon.
 	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)

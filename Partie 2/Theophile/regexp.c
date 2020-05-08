@@ -105,7 +105,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 				
 				if(!est_vide(*p))
 					depiler(paro);
-					
+				
 				else{
 					printf("ERR : le mot %s n'est pas reconnu, le mot de Dick n'est pas respecté\n", expr);
 					*error = 2;
@@ -199,10 +199,11 @@ ADERIV construire_arbre_derivation(char *expr){
 	
 	switch(error){
 		case 0:
-			if( est_vide(p) && expr[index] == '#' && est_vide(paro)){
+			if(est_vide(p) && expr[index] == '#' && est_vide(paro)){
 				printf("le mot : %s est reconnue\n\n", expr);
 				break;
 			}
+			
 			return NULL;
 			
 		case 1:

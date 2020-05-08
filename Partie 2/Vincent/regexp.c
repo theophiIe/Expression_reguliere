@@ -19,7 +19,6 @@ void liberer_arbre(ADERIV a){
 	}
 }
 
-
 int indice_char(char c){//retourne l'indice correspondant au caractère dans le tableau des états
 	switch(c){
 		case '+': return 0;
@@ -35,231 +34,189 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 	}
 }
 
+ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *error, PILE *p, PILE *paro){
+	ADERIV noeud; 
+	STATE symbole;
+	char carCourant = expr[*index];
 
-ADERIV nouveau_noeud(STATE state, char car){
-	ADERIV a = malloc(sizeof(struct aderiv));
-	
-	a->s = state;
-	
-	switch(state){
-		case CAR: a->caractere = car; break;
-		case PARO: a->caractere = '('; break;
-		case PARF: a->caractere = ')'; break;
-		case PLUS: a->caractere = '+'; break;
-		case POINT: a->caractere = '.'; break;
-		case ETOILE: a->caractere = '*'; break;
-		default:
-			a->caractere = '0';
+	//On dépile si la pile n'est pas vide
+	if(!est_vide(*p)){
+		symbole = depiler(p);	
 	}
-			
-	for( int i=0 ; i < 3 ; i++ )
-		a->fils[i] = NULL;
 	
-	return a;
-}
-
-
-ADERIV test_recursif(PILE *pile, char *expr, int *courant, STATELISTE table[7][7], int *correcte){
+	else{
+		printf("ERR : le mot %s n'est pas reconnu, la pile est vide\n", expr);
+		*error = 1;
+	}
 	
-	//Afficher expression en cours
-	for( int i=*courant ; i < strlen(expr) ; i++ )
-		printf("%c",expr[i]);
-	printf("\n");
-	
-	PILE p_renverser = nouvelle_pile(strlen(expr)*2);
-	int statelist_taille; 
-	int sommet_pile = pile->sommet - 1;
-	STATE state_sommet = pile->contenu[sommet_pile];	//Le sommet que l'on traite dans cet appel de fonction
-	ADERIV noeud;
-	
-	if( state_sommet < CAR ){		//Si le symbole en haut de la pile est un non terminal...
-		statelist_taille = table[state_sommet][indice_char(expr[*courant])].taille;
+	// Non terminaux
+	if(symbole < CAR){
+		if(table[symbole][indice_char(carCourant)].taille != -1){
+			for(int cmpt = table[symbole][indice_char(carCourant)].taille - 1; cmpt > -1; cmpt--){
+				*p = empiler(*p, table[symbole][indice_char(carCourant)].liste[cmpt]);
+			}
+		}
 		
-		if( statelist_taille != -1){		//Si la règle éxiste...
-			depiler(pile);	//On dépile le symbole
-			for( int j=0 ; j < statelist_taille ; j++ )	//On empile les symboles correspondants dans p_renverser
-				p_renverser = empiler(p_renverser, table[state_sommet][indice_char(expr[*courant])].liste[j]);	//necessaire pour mettre les STATE dans le bon ordre dans la PILE p
+		else{
+			printf("ERR : le mot %s n'est pas reconnu, il n'y a pas de transition dans la table\n", expr);
+			*error = 1;
+		}
+		
+		noeud = nouvel_arbre(symbole, carCourant);
+		for(int cmpt = 0; cmpt < table[symbole][indice_char(noeud -> caractere)].taille; cmpt++){
+			noeud -> fils[cmpt] = construc_recursive(table, expr, index, error, p, paro);
+		}
+		
+		//affiche_pile(*p);	
+	}
+	
+	// Terminaux
+	else if(symbole > F){
+		if(symbole == CAR){
+			if(carCourant >= 'a' && carCourant <= 'z'){
+				(*index)++;
+			}
 			
-			for( int j=0 ; j < statelist_taille ; j++ )	//On dépile p_renverser pour empiler les symboles dans le bon ordre dans p
-				*pile = empiler(*pile, depiler(&p_renverser));
+			else if(carCourant == '#'){
+				printf("Caractere de fin vu\n");
+			}
+
+			else{
+				printf("ERR : le mot %s n'est pas reconnu, le symbole n'est pas égal au caractere courant\n", expr);
+				*error = 1;
+			}
+		}
+		
+		else if(symbole == PARO){
+			if(carCourant == '('){
+				(*index)++;
+				*paro = empiler(*paro, PARO);
+			}
+			
+			else{
+				printf("ERR : le mot %s n'est pas reconnu, le symbole n'est pas égal au caractere courant\n", expr);
+				*error = 1;
+			}
+		}
+		
+		else if(symbole == PARF){
+			if(carCourant == ')'){
+				(*index)++;
 				
-			//On appelle la fonction pour chaque symbole
-			noeud = nouveau_noeud(state_sommet, expr[*courant]);
-			for( int i=0 ; i < statelist_taille ; i++ )
-				noeud->fils[i] = test_recursif(pile, expr, courant, table, correcte);	//Appel recursif
+				if(!est_vide(*p))
+					depiler(paro);
+				
+				else{
+					printf("ERR : le mot %s n'est pas reconnu, le mot de Dick n'est pas respecté\n", expr);
+					*error = 2;
+				}
+			}
+			
+			else{
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
+				*error = 1;
+			}
 		}
 		
-		else 		//Si la règle n'éxiste pas...
-			*correcte = 0;
-	}
-	
-	else{							//Si le symbole en haut de la pile est un terminal...
-		STATE tmp = depiler(pile);	//'tmp' est le symbole terminal qui était au sommet de la pile
-		char terminal;
-		switch( tmp ){
-			case CAR: terminal = expr[*courant]; break;
-			case PARO: terminal = '('; break;
-			case PARF: terminal = ')'; break;
-			case PLUS: terminal = '+'; break;
-			case POINT: terminal = '.'; break;
-			case ETOILE: terminal = '*'; break;
-			default:
-				terminal = '0'; 
+		else if(symbole == PLUS){
+			if(carCourant == '+'){
+				(*index)++;
+			}
+			
+			else{
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
+				*error = 1;
+			}
 		}
-		if( (expr[*courant] != terminal) && (expr[*courant] != '#') )
-			*correcte = 0;
-		(*courant)++;
-		noeud = nouveau_noeud(state_sommet, expr[*courant]);
+		
+		else if(symbole == POINT ){
+			if(carCourant == '.'){
+				(*index)++;
+			}
+			
+			else{
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
+				*error = 1;
+			}
+		}
+		
+		else if(symbole == ETOILE){
+			if(carCourant == '*'){
+				(*index)++;
+			}
+			
+			else{
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
+				*error = 1;
+			}
+		}
+		
+		else{
+			printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas reconnu\n", expr);
+			*error = 1;
+		}
+		
+		noeud = nouvel_arbre(symbole, carCourant);
 	}
 	
 	return noeud;
 }
 
-
-ADERIV construire_arbre_derivation_TEST(char *expr){
-	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
-		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, // transition quand le STATE S est lu
-		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},//STATE A
-		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},//STATE B
-		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},//STATE C
-		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},//STATE D
-		{{0},{0},{0},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}},//STATE E
-		{{0},{0},{2,{ETOILE,F}},{-1},{0},{-1},{0}}//STATE F
-	};
-	//Une STATELISTE de taille 0 correspond à une règle dont la production est epsilon.
-	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)
-	int taille = strlen(expr);
-	PILE p = nouvelle_pile(taille*2);
-	p = empiler(p,S);		//On commence avec l'axiome : S
-	
-	int courant = 0;
-	int correcte = 1;
-	
-	ADERIV arbre = test_recursif(&p, expr, &courant, table, &correcte);
-	
-	if( (correcte == 1) && (est_vide(p)) )
-		printf("L'arbre dessiné ci-dessous est correcte !\n");
-	else
-		printf("L'arbre dessiné ci-dessous n'est pas correcte...\n");
-	
-	return arbre;
-}
-
-
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
-		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, // transition quand le STATE S est lu
-		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},//STATE A
-		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},//STATE B
-		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},//STATE C
-		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},//STATE D
-		{{0},{0},{0},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}},//STATE E
-		{{0},{0},{2,{ETOILE,F}},{-1},{0},{-1},{0}}//STATE F
+		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, 	  // transition quand le STATE S est lu
+		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},		  //STATE A
+		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},	  //STATE B
+		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},		  //STATE C
+		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},		  //STATE D
+		{{0},{0},{-1},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}}, //STATE E
+		{{0},{0},{1,{ETOILE}},{-1},{0},{-1},{0}}			  //STATE F
 	};
 	//Une STATELISTE de taille 0 correspond à une règle dont la production est epsilon.
 	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)
+	
 	int taille = strlen(expr);
-	PILE p = nouvelle_pile(taille*2);
-	PILE p_renverser = nouvelle_pile(taille*2);
+	int index  = 0;
+	int error  = 0;
 	
-	ADERIV arbre = nouvel_arbre(S,'0');	//Pointe sur la racine de l'arbre
-	//~ ADERIV noeud_courant = arbre;	//Pointe sur le noeud courant, le state au sommet de la pile
-	p = empiler(p,S);
+	PILE p 	  = nouvelle_pile(taille*2);
+	PILE paro = nouvelle_pile(taille);
 	
-	int statelist_taille, sommet_pile;
-	STATE state_sommet;
+	ADERIV arbre = NULL;
 	
-	int i;
-	for( i=0 ; i < taille ; i++ ){
-		
-		sommet_pile = p.sommet - 1;
-		state_sommet = p.contenu[sommet_pile];
-		
-		printf("EXPRESSION = ");
-		for( int k=i ; k < taille ; k++ )
-			printf("%c",expr[k]);
-		printf("\n");
-		printf("PILE p = ");
-		affiche_pile(p);
-		
-		if( state_sommet < CAR ){		//Si le symbole en haut de la pile est un non terminal...
-			
-			statelist_taille = table[state_sommet][indice_char(expr[i])].taille;
-			if( statelist_taille != -1){		//Si la règle éxiste...
-				depiler(&p);	//On dépile le symbole
-				for( int j=0 ; j < statelist_taille ; j++ )	//On empile les symboles correspondants dans p_renverser
-					p_renverser = empiler(p_renverser, table[state_sommet][indice_char(expr[i])].liste[j]);	//necessaire pour mettre les STATE dans le bon ordre dans la PILE p
-				
-				//~ for( int j=0 ; j < statelist_taille ; j++ )	//Remplissage de l'arbre
-					//~ noeud_courant->fils[j] = nouveau_noeud(p_renverser.contenu[j], expr[i]);
-				//~ if( noeud_courant->fils[0] != NULL )
-					//~ noeud_courant = noeud_courant->fils[0];	//'noeud_courant' doit pointer sur le STATE du sommet de la pile
-				
-				
-				for( int j=0 ; j < statelist_taille ; j++ )	//On dépile p_renverser pour empiler les symboles dans le bon ordre dans p
-					p = empiler(p, depiler(&p_renverser));
-				i--;				//Permet de rester sur le même caractère courant pour la prochaine itération
-			}
-				
-				
-			else{ 							//Si la règle n'éxiste pas...
-				printf("Le mot n'est pas reconnu... (1er else)\n");
-				liberer_pile(p);
-				liberer_pile(p_renverser);
-				return NULL;
-			}
-				
-		}
-		
-		else{							//Si le symbole en haut de la pile est un terminal...
-			
-			//~ if( state_sommet == CAR ){		//Si c'est un caractère...
-				//~ printf("arbre->caractere = %c	expr[i] = %c\n",arbre->caractere,expr[i]);
-				//~ if( arbre->caractere == expr[i] )
-					//~ depiler(&p);	//On dépile le symbole
-			//~ }
-			
-			//~ else if( state_sommet > CAR ){	//Si le symbole du haut de la pile est un terminal autre qu'un caractère...
-				
-				//~ STATE tmp;
-				//~ switch(expr[i]){
-					//~ case '+': tmp = PLUS; break;
-					//~ case '.': tmp = POINT; break;
-					//~ case '*': tmp = ETOILE; break;
-					//~ case '(': tmp = PARO; break;
-					//~ case ')': tmp = PARF; break;
-				//~ }
-				//~ //printf("state_sommet = %d	tmp = %d\n",state_sommet,tmp);
-				//~ if( state_sommet == tmp-1 )		//POURQUOI le '-1' ?? Je ne sais pas...
-					//~ depiler(&p);	//On dépile le symbole
-				//~ else if( expr[i] == '#')
-					//~ break;
-			//~ }
-			
-			//~ else{										//Si le symbole du haut de la pile est différent du caractère courant...
-				//~ printf("Le mot n'est pas reconnu... (2ème else)\n");
-				//~ liberer_pile(p);
-				//~ liberer_pile(p_renverser);
-				//~ return NULL;
-			//~ }
-			depiler(&p);
-		}
-		printf("\n");
-	}
-	
-	affiche_pile(p);
-	
-	if( ! est_vide(p) ){
-		printf("Le mot n'est pas reconnu... (pile non vide)\n");
+	if(expr[strlen(expr) - 1] != '#'){
+		printf("ERR : le mot %s n'est pas reconnu, erreur de syntaxe il manque # en caractere de fin\n\n", expr);
 		liberer_pile(p);
-		liberer_pile(p_renverser);
 		return NULL;
 	}
 	
-	liberer_pile(p);
-	liberer_pile(p_renverser);
+	// On empile S
+	p = empiler(p, S);
+
+	arbre = construc_recursive(table, expr, &index, &error, &p, &paro);
 	
-	printf("---------- Le mot est reconnu ! -----------\n");
+	printf("dernier car : %c\n", expr[index]);
+	
+	switch(error){
+		case 0:
+			if(est_vide(p) && expr[index] == '#' && est_vide(paro)){
+				printf("le mot : %s est reconnue\n\n", expr);
+				break;
+			}
+			
+			return NULL;
+			
+		case 1:
+			printf("le mot : %s n'est pas reconnue\n\n", expr);
+			return NULL;
+			
+		case 2:
+			printf("le mot : %s n'est pas reconnue\n\n", expr);
+			return NULL;
+	}
+	
+	liberer_pile(p);
+	liberer_pile(paro);
 	
 	return arbre;
 }
@@ -276,3 +233,4 @@ void affiche_aderiv(ADERIV a, int space){//rendre joli
 	    affiche_aderiv(a->fils[0], space + 1);
 	}
 }
+

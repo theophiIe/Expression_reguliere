@@ -34,10 +34,10 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 	}
 }
 
-ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int taille, int *error, PILE *p, PILE *paro){
+ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *error, PILE *p, PILE *paro){
 	ADERIV noeud; 
 	STATE symbole;
-	char carCourant  = expr[*index];
+	char carCourant = expr[*index];
 
 	//On dépile si la pile n'est pas vide
 	if(!est_vide(*p)){
@@ -64,7 +64,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 		
 		noeud = nouvel_arbre(symbole, carCourant);
 		for(int cmpt = 0; cmpt < table[symbole][indice_char(noeud -> caractere)].taille; cmpt++){
-			noeud -> fils[cmpt] = construc_recursive(table, expr, index, taille, error, p, paro);
+			noeud -> fils[cmpt] = construc_recursive(table, expr, index, error, p, paro);
 		}
 		
 		//affiche_pile(*p);	
@@ -164,13 +164,13 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
-		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, 	// transition quand le STATE S est lu
-		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},		//STATE A
-		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},	//STATE B
-		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},		//STATE C
-		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},		//STATE D
-		{{0},{0},{-1},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}},//STATE E
-		{{0},{0},{1,{ETOILE}},{-1},{0},{-1},{0}}			//STATE F
+		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, 	  // transition quand le STATE S est lu
+		{{-1},{-1},{-1},{2,{C,D}},{-1},{2,{C,D}},{-1}},		  //STATE A
+		{{3,{PLUS,A,B}},{-1},{-1},{-1},{0},{-1},{1,{CAR}}},	  //STATE B
+		{{-1},{-1},{-1},{2,{E,F}},{-1},{2,{E,F}},{-1}},		  //STATE C
+		{{0},{3,{POINT,C,D}},{-1},{-1},{0},{-1},{0}},		  //STATE D
+		{{0},{0},{-1},{3,{PARO,S,PARF}},{-1},{1,{CAR}},{-1}}, //STATE E
+		{{0},{0},{1,{ETOILE}},{-1},{0},{-1},{0}}			  //STATE F
 	};
 	//Une STATELISTE de taille 0 correspond à une règle dont la production est epsilon.
 	//Une STATELISTE de taille -1 correspond à une erreur (expression rejetée)
@@ -185,7 +185,7 @@ ADERIV construire_arbre_derivation(char *expr){
 	ADERIV arbre = NULL;
 	
 	if(expr[strlen(expr) - 1] != '#'){
-		printf("ERR : le mot %s n'est pas reconnu, erreur de syntaxe il manque # en caractere de fin\n", expr);
+		printf("ERR : le mot %s n'est pas reconnu, erreur de syntaxe il manque # en caractere de fin\n\n", expr);
 		liberer_pile(p);
 		return NULL;
 	}
@@ -193,24 +193,24 @@ ADERIV construire_arbre_derivation(char *expr){
 	// On empile S
 	p = empiler(p, S);
 
-	arbre = construc_recursive(table, expr, &index, taille, &error, &p, &paro);
+	arbre = construc_recursive(table, expr, &index, &error, &p, &paro);
 	
 	printf("dernier car : %c\n", expr[index]);
 	
 	switch(error){
 		case 0:
 			if( est_vide(p) && expr[index] == '#' && est_vide(paro)){
-				printf("le mot : %s est reconnue\n", expr);
+				printf("le mot : %s est reconnue\n\n", expr);
 				break;
 			}
 			return NULL;
 			
 		case 1:
-			printf("le mot : %s n'est pas reconnue\n", expr);
+			printf("le mot : %s n'est pas reconnue\n\n", expr);
 			return NULL;
 			
 		case 2:
-			printf("le mot : %s n'est pas reconnue\n", expr);
+			printf("le mot : %s n'est pas reconnue\n\n", expr);
 			return NULL;
 	}
 	

@@ -41,12 +41,11 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 
 	//On dépile si la pile n'est pas vide
 	if(!est_vide(*p)){
-		//affiche_pile(*p);
 		symbole = depiler(p);	
 	}
 	
 	else{
-		printf("ERR : expression reguliere %s non reconnue\n", expr);
+		printf("ERR : le mot %s n'est pas reconnu, la pile est vide\n", expr);
 		*error = 1;
 	}
 	
@@ -59,7 +58,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 		}
 		
 		else{
-			printf("ERR : expression reguliere %s non reconnue\n", expr);
+			printf("ERR : le mot %s n'est pas reconnu, il n'y a pas de transition dans la table\n", expr);
 			*error = 1;
 		}
 		
@@ -79,11 +78,11 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 			}
 			
 			else if(carCourant == '#'){
-				//return noeud;
+				printf("Caractere de fin vu\n");
 			}
 
 			else{
-				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				printf("ERR : le mot %s n'est pas reconnu, le symbole n'est pas égal au caractere courant\n", expr);
 				*error = 1;
 			}
 		}
@@ -95,7 +94,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 			}
 			
 			else{
-				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				printf("ERR : le mot %s n'est pas reconnu, le symbole n'est pas égal au caractere courant\n", expr);
 				*error = 1;
 			}
 		}
@@ -108,13 +107,13 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 					depiler(paro);
 					
 				else{
-					printf("ERR : expression reguliere %s erreur de syntaxe le mot de Dick n'est pas respecté\n", expr);
+					printf("ERR : le mot %s n'est pas reconnu, le mot de Dick n'est pas respecté\n", expr);
 					*error = 2;
 				}
 			}
 			
 			else{
-				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
 				*error = 1;
 			}
 		}
@@ -125,7 +124,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 			}
 			
 			else{
-				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
 				*error = 1;
 			}
 		}
@@ -136,7 +135,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 			}
 			
 			else{
-				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
 				*error = 1;
 			}
 		}
@@ -147,13 +146,13 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int ta
 			}
 			
 			else{
-				printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
 				*error = 1;
 			}
 		}
 		
 		else{
-			printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+			printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas reconnu\n", expr);
 			*error = 1;
 		}
 		
@@ -186,7 +185,7 @@ ADERIV construire_arbre_derivation(char *expr){
 	ADERIV arbre = NULL;
 	
 	if(expr[strlen(expr) - 1] != '#'){
-		printf("ERR : expression reguliere %s erreur de syntaxe manque # en caractere de fin\n", expr);
+		printf("ERR : le mot %s n'est pas reconnu, erreur de syntaxe il manque # en caractere de fin\n", expr);
 		liberer_pile(p);
 		return NULL;
 	}

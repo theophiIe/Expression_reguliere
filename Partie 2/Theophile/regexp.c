@@ -232,6 +232,7 @@ ADERIV construire_arbre_derivation(char *expr){
 error:
 	liberer_pile(p);
 	liberer_pile(paro);
+	liberer_arbre(arbre);
 	return NULL;
 }
 

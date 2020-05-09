@@ -34,14 +34,21 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 	}
 }
 
-ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *error, PILE *p, PILE *paro){
+ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *error, PILE *p){
 	ADERIV noeud  = NULL; 
 	STATE symbole;
 	char carCourant = expr[*index];
-
+	int taille = -1;
+	
+	// Si on rencontre une erreur on return NULL
+	// on ne continue pas à parcourir l'arbre
+	if(*error == 1 || *error == 2)
+		return NULL;
+	
 	//On dépile si la pile n'est pas vide
 	if(!est_vide(*p)){
 		symbole = depiler(p);
+		taille = table[symbole][indice_char(carCourant)].taille;
 	}
 	
 	else{
@@ -51,10 +58,9 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 	
 	// Non terminaux
 	if(symbole < CAR){
-		if(table[symbole][indice_char(carCourant)].taille != -1){
-			for(int cmpt = table[symbole][indice_char(carCourant)].taille; cmpt > 0; cmpt--){
+		if(taille != -1){
+			for(int cmpt = taille; cmpt > 0; cmpt--)
 				*p = empiler(*p, table[symbole][indice_char(carCourant)].liste[cmpt - 1]);
-			}
 		}
 		
 		else{
@@ -62,22 +68,19 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 			*error = 1;
 		}
 		
-		noeud = nouvel_arbre(symbole, carCourant);
-		for(int cmpt = 0; cmpt < table[symbole][indice_char(noeud -> caractere)].taille; cmpt++){
-			noeud -> fils[cmpt] = construc_recursive(table, expr, index, error, p, paro);
-		}
+		noeud  = nouvel_arbre(symbole, carCourant);
+		for(int cmpt = 0; cmpt < table[symbole][indice_char(noeud -> caractere)].taille; cmpt++)
+			noeud -> fils[cmpt] = construc_recursive(table, expr, index, error, p);
 	}
 	
 	// Terminaux
 	else if(symbole > F){
 		if(symbole == CAR){
-			if(carCourant >= 'a' && carCourant <= 'z'){
+			if(carCourant >= 'a' && carCourant <= 'z')
 				(*index)++;
-			}
 			
-			else if(carCourant == '#'){
+			else if(carCourant == '#')
 				printf("Caractere de fin vu\n");
-			}
 
 			else{
 				printf("ERR : le mot %s n'est pas reconnu, le symbole n'est pas égal au caractere courant\n", expr);
@@ -86,10 +89,8 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 		}
 		
 		else if(symbole == PARO){
-			if(carCourant == '('){
+			if(carCourant == '(')
 				(*index)++;
-				*paro = empiler(*paro, PARO);
-			}
 			
 			else{
 				printf("ERR : le mot %s n'est pas reconnu, le symbole n'est pas égal au caractere courant\n", expr);
@@ -98,17 +99,8 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 		}
 
 		else if(symbole == PARF){
-			if(carCourant == ')'){
+			if(carCourant == ')')
 				(*index)++;
-				
-				if(!est_vide(*p))
-					depiler(paro);
-				
-				else{
-					printf("ERR : le mot %s n'est pas reconnu, le mot de Dick n'est pas respecté\n", expr);
-					*error = 2;
-				}
-			}
 			
 			else{
 				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
@@ -117,9 +109,8 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 		}
 		
 		else if(symbole == PLUS){
-			if(carCourant == '+'){
+			if(carCourant == '+')
 				(*index)++;
-			}
 			
 			else{
 				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
@@ -128,9 +119,8 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 		}
 		
 		else if(symbole == POINT ){
-			if(carCourant == '.'){
+			if(carCourant == '.')
 				(*index)++;
-			}
 			
 			else{
 				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
@@ -139,9 +129,8 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 		}
 		
 		else if(symbole == ETOILE){
-			if(carCourant == '*'){
+			if(carCourant == '*')
 				(*index)++;
-			}
 			
 			else{
 				printf("ERR : le mot %s n'est pas reconnue, le symbole n'est pas égal au caractere courant\n", expr);
@@ -165,6 +154,33 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 	return noeud;
 }
 
+int verif_Dyck(char *expr){
+	PILE paro = nouvelle_pile(strlen(expr));
+	
+	for(int cmpt = 0; cmpt < strlen(expr); cmpt++){
+		if(expr[cmpt] == '(')
+			paro = empiler(paro, PARO);
+			
+		else if(expr[cmpt] == ')'){
+			if(!est_vide(paro))
+				depiler(&paro);
+			
+			else{
+				liberer_pile(paro);
+				return 0;
+			}
+		}
+	}
+	
+	if(!est_vide(paro)){
+		liberer_pile(paro);
+		return 0;
+	}
+	
+	liberer_pile(paro);
+	return 1;
+}
+
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
 		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, 	  // transition quand le STATE S est lu
@@ -182,8 +198,7 @@ ADERIV construire_arbre_derivation(char *expr){
 	int index  = 0;
 	int error  = 0;
 	
-	PILE p 	  = nouvelle_pile(taille*2);
-	PILE paro = nouvelle_pile(taille);
+	PILE p = nouvelle_pile(taille*2);
 	
 	ADERIV arbre = NULL;
 	
@@ -192,46 +207,35 @@ ADERIV construire_arbre_derivation(char *expr){
 		goto error;
 	}
 	
+	if(!verif_Dyck(expr)){
+		printf("ERR : le mot %s n'est pas reconnu, le mot de Dyck n'est pas respecté\n\n", expr);
+		goto error;
+	}
+	
 	// On empile S
 	p = empiler(p, S);
 
-	arbre = construc_recursive(table, expr, &index, &error, &p, &paro);
+	arbre = construc_recursive(table, expr, &index, &error, &p);
 	
-	printf("dernier car : %c\n", expr[index]);
+	if(error == 0 && est_vide(p) && expr[index] == '#')
+		printf("le mot : %s est reconnue\n\n", expr);
 	
-	switch(error){
-		case 0:
-			if(est_vide(p) && expr[index] == '#' && est_vide(paro)){
-				printf("le mot : %s est reconnue\n\n", expr);
-				break;
-			}
-			
-			else{
-				printf("le mot : %s n'est pas reconnue\n\n", expr);
-				goto error;
-			}
-			
-		case 1:
-			printf("le mot : %s n'est pas reconnue\n\n", expr);
-			goto error;
-			
-		case 2:
-			printf("le mot : %s n'est pas reconnue\n\n", expr);
-			goto error;
-		
-		default:
-			printf("le mot : %s n'est pas reconnue\n\n", expr);
-			goto error;
+	else if(error == 1){
+		printf("le mot : %s n'est pas reconnue\n\n", expr);
+		goto error;
+	}
+	
+	else{
+		printf("le mot : %s n'est pas reconnue\n\n", expr);
+		goto error;
 	}
 	
 	liberer_pile(p);
-	liberer_pile(paro);
 	
 	return arbre;
 
 error:
 	liberer_pile(p);
-	liberer_pile(paro);
 	liberer_arbre(arbre);
 	return NULL;
 }

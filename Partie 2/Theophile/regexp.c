@@ -34,6 +34,7 @@ int indice_char(char c){//retourne l'indice correspondant au caractère dans le 
 	}
 }
 
+//Construction de l'arbre noeud par noeud, récursivement
 ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *error, PILE *p){
 	ADERIV noeud  = NULL; 
 	STATE symbole;
@@ -154,6 +155,7 @@ ADERIV construc_recursive(STATELISTE table[7][7], char *expr, int *index, int *e
 	return noeud;
 }
 
+//Vérifie que le parenthésage est correcte
 int verif_Dyck(char *expr){
 	PILE paro = nouvelle_pile(strlen(expr));
 	
@@ -181,6 +183,7 @@ int verif_Dyck(char *expr){
 	return 1;
 }
 
+//Cette fonction permet de construire l'arbre 
 ADERIV construire_arbre_derivation(char *expr){
 	STATELISTE table[7][7] = {//cette table représente la table des transitions de l'énoncé
 		{{-1},{-1},{-1},{2,{A,B}},{-1},{2,{A,B}},{-1}}, 	  // transition quand le STATE S est lu
